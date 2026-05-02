@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malawi • Buy & Sell Locally</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+        }
+        
+        .logo-box {
+            width: 10px; 
+            height: 10px;
+            background: linear-gradient(135deg, #3553e4, #502cd1);
+            color: white;
+            font-size: 1.8rem; 
+            font-weight: 800;
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px -2px rgb(21 128 61 / 0.3);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover {
+            color: #15803d;
+            transform: translateY(-1px);
+        }
+
+        .profile-icon {
+            width: 46px;
+            height: 46px;
+            background: #f8fafc;
+            color: #166534;
+            font-size: 1.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .profile-icon:hover {
+            background: #ecfdf5;
+            border-color: #4ade80;
+            transform: scale(1.08);
+        }
+
+        .secondary-nav {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .hero-bg {
+            background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.70)), 
+                        url('images/mateusz-niezgoda-yR-YHOFZR0I-unsplash.jpg') center/cover no-repeat;
+        }
+
+        .section-title {
+            font-size: 2.75rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+        }
+
+        .product-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .product-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- ==================== MAIN NAVBAR ==================== -->
+    <nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-5 sm:px-8">
+            <div class="flex justify-between items-center h-20">
+                
+                <!-- Logo -->
+                <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
+                    <div class="logo-box">🛍️</div>
+                    <div>
+                        <span class="text-2xl font-bold tracking-tight text-blue-900">SimpoBay</span>
+                        <span class="text-blue-500 font-bold text-2xl tracking-tight"></span>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="flex-1 max-w-2xl mx-8 hidden md:block">
+                    <div class="relative">
+                        <input id="search-input" type="text" placeholder="Search products, categories, or sellers..." 
+                               onkeyup="if(event.key==='Enter') performSearch()"
+                               class="w-full pl-14 pr-6 py-3.5 bg-gray-100 border border-transparent focus:border-green-600 focus:bg-white rounded-3xl text-base focus:outline-none transition-all">
+                        <i onclick="performSearch()" class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
+                    </div>
+                </div>
+
+                <!-- Right Side -->
+                <div class="flex items-center gap-6">
+                    <div id="nav-auth-buttons" class="flex items-center gap-4">
+                        <!-- Dynamic buttons will be inserted by JS -->
+                    </div>
+
+                    <!-- Profile -->
+                    <div onclick="toggleProfileDropdown()" id="profile-btn"
+                         class="w-11 h-11 bg-emerald-100 text-emerald-700 flex items-center justify-center rounded-2xl text-2xl cursor-pointer hover:bg-emerald-200 transition-all border border-emerald-200">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div id="profile-dropdown" class="hidden absolute right-6 top-20 bg-white rounded-3xl shadow-2xl py-5 w-80 z-50 border border-gray-100">
+            <div id="dropdown-user-info" class="px-6 py-4 border-b hidden">
+                <p class="font-semibold text-gray-800" id="dropdown-username"></p>
+                <p class="text-sm text-gray-500" id="dropdown-role"></p>
+            </div>
+            
+            <div class="py-3 text-lg">
+                <a href="#" onclick="navigateTo('home'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
+                    <i class="fa-solid fa-house w-6 text-green-700"></i>
+                    <span>Home</span>
+                </a>
+                <a href="#" onclick="navigateTo('marketplace'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
+                    <i class="fa-solid fa-store w-6 text-green-700"></i>
+                    <span>Marketplace</span>
+                </a>
+                <a href="#" onclick="navigateTo('sell'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
+                    <i class="fa-solid fa-tag w-6 text-green-700"></i>
+                    <span>Sell on Market</span>
+                </a>
+            </div>
+
+            <div id="logged-in-options" class="hidden border-t pt-3">
+                <a href="#" onclick="showSellerDashboard(); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
+                    <i class="fa-solid fa-chart-line w-6 text-green-700"></i>
+                    <span>Seller Dashboard</span>
+                </a>
+                <a href="#" onclick="showAdminDashboard(); toggleProfileDropdown()" id="admin-link" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50 hidden">
+                    <i class="fa-solid fa-shield-halved w-6 text-green-700"></i>
+                    <span>Admin Dashboard</span>
+                </a>
+                <button onclick="logout()" class="w-full text-left px-6 py-4 hover:bg-red-50 flex items-center gap-4 text-red-600">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+
+            <div id="logged-out-options" class="border-t pt-4 mt-2">
+                <button onclick="showLoginModal(); toggleProfileDropdown()" 
+                        class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
+                    <i class="fa-solid fa-right-to-bracket text-green-700"></i>
+                    <span>Log In</span>
+                </button>
+                <button onclick="showSignupModal(); toggleProfileDropdown()" 
+                        class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
+                    <i class="fa-solid fa-user-plus text-green-700"></i>
+                    <span>Sign Up</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ==================== SECONDARY NAV ==================== -->
+    <div class="secondary-nav sticky top-20 z-40 bg-white border-b">
+        <div class="max-w-7xl mx-auto px-5 sm:px-8">
+            <div class="flex items-center gap-8 text-sm font-medium text-gray-600 overflow-x-auto py-4 hide-scrollbar">
+                <a href="#" onclick="navigateTo('home')" class="hover:text-green-700 transition-colors whitespace-nowrap">🏠 Home</a>
+                <a href="#" onclick="navigateTo('marketplace')" class="hover:text-green-700 transition-colors whitespace-nowrap">🛒 Buy items</a>
+                <a href="#" onclick="navigateTo('services')" class="hover:text-green-700 transition-colors whitespace-nowrap">🧰 Services</a>
+                <a href="#" onclick="navigateTo('sell')" class="hover:text-green-700 transition-colors whitespace-nowrap">📉Sell</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== HOME SECTION ==================== -->
+    <section id="home-section">
+
+        <!-- Hero -->
+        <div class="hero-bg h-screen flex items-center text-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6">
+                <div class="max-w-2xl">
+                    <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
+                        Find what you need<br><span class="text-emerald-300">near you</span>
+                    </h1>
+                    <p class="text-lg md:text-xl mb-10">Services, items, and people ready to help in Malawi.</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="navigateTo('services')" class="px-10 py-5 bg-white text-green-700 font-bold text-xl rounded-3xl hover:scale-105 transition-all">Find Services</button>
+                        <button onclick="navigateTo('marketplace')" class="px-10 py-5 border-4 border-white font-bold text-xl rounded-3xl hover:bg-white/10 transition-all">Buy Items</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="py-12 bg-white">
+            <div class="max-w-7xl mx-auto px-5">
+                <h2 class="text-2xl font-semibold text-center mb-8 text-gray-800">Quick Actions</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+                    <div onclick="navigateTo('services')" class="action-card bg-emerald-50 p-7 rounded-3xl text-center cursor-pointer">
+                        <i class="fa-solid fa-wrench text-5xl text-emerald-600 mb-4"></i>
+                        <p class="font-semibold text-lg">Find a Service</p>
+                    </div>
+                    <div onclick="showPostListingModal()" class="action-card bg-amber-50 p-7 rounded-3xl text-center cursor-pointer">
+                        <i class="fa-solid fa-tag text-5xl text-amber-600 mb-4"></i>
+                        <p class="font-semibold text-lg">Sell Something</p>
+                    </div>
+                    <div onclick="navigateTo('marketplace')" class="action-card bg-blue-50 p-7 rounded-3xl text-center cursor-pointer">
+                        <i class="fa-solid fa-cart-shopping text-5xl text-blue-600 mb-4"></i>
+                        <p class="font-semibold text-lg">Buy Items</p>
+                    </div>
+                    <div onclick="navigateTo('help')" class="action-card bg-red-50 p-7 rounded-3xl text-center cursor-pointer">
+                        <i class="fa-solid fa-bell text-5xl text-red-600 mb-4"></i>
+                        <p class="font-semibold text-lg">Request Help</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Need Help Today -->
+        <div class="py-14 bg-gradient-to-r from-red-600 to-rose-600 text-white">
+            <div class="max-w-7xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div>
+                    <div class="flex items-center gap-3">
+                        <i class="fa-solid fa-fire-flame-curved text-4xl"></i>
+                        <h2 class="text-3xl font-bold">Need Help Today?</h2>
+                    </div>
+                    <p class="mt-3 text-red-100">Urgent service requests • Real-time community demand</p>
+                </div>
+                <button onclick="navigateTo('services')" 
+                        class="bg-white text-red-700 px-10 py-4 rounded-3xl font-bold text-lg hover:bg-red-50 transition-all">
+                    Get Urgent Service
+                </button>
+            </div>
+        </div>
+
+        <!-- Nearby Services -->
+        <div class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-5">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-3xl font-bold">Nearby Services</h2>
+                    <button onclick="navigateTo('services')" 
+                            class="text-emerald-700 font-medium flex items-center gap-2 hover:underline">
+                        View All Services <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
+                        <span class="text-5xl block mb-4">🔌</span>
+                        <h3 class="font-semibold text-lg">Electricians</h3>
+                        <p class="text-sm text-gray-500 mt-1">Available today in Lilongwe</p>
+                    </div>
+                    <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
+                        <span class="text-5xl block mb-4">🔧</span>
+                        <h3 class="font-semibold text-lg">Plumbers</h3>
+                        <p class="text-sm text-gray-500 mt-1">Same-day service</p>
+                    </div>
+                    <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
+                        <span class="text-5xl block mb-4">📱</span>
+                        <h3 class="font-semibold text-lg">Phone Repairs</h3>
+                        <p class="text-sm text-gray-500 mt-1">Screen & software fix</p>
+                    </div>
+                    <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
+                        <span class="text-5xl block mb-4">🚚</span>
+                        <h3 class="font-semibold text-lg">Transport</h3>
+                        <p class="text-sm text-gray-500 mt-1">Delivery & moving</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trending Now -->
+        <div class="py-20 bg-white">
+            <div class="max-w-7xl mx-auto px-5 sm:px-8">
+                <div class="flex justify-between items-end mb-10">
+                    <div>
+                        <h2 class="section-title text-gray-900">Trending Now</h2>
+                        <p class="text-gray-600 mt-2">Popular items right now on marketplace</p>
+                    </div>
+                    <button onclick="navigateTo('marketplace')" 
+                            class="text-emerald-700 font-medium flex items-center gap-2 hover:underline">
+                        View All <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div id="trending-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+            </div>
+        </div>
+
+        <!-- Post Something Section -->
+        <div class="py-20 bg-emerald-700 text-white">
+            <div class="max-w-4xl mx-auto px-5 text-center">
+                <h2 class="text-4xl font-bold mb-4">Got something to offer?</h2>
+                <p class="text-emerald-100 text-xl mb-12">Your skills and products can support your community today</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                    <button onclick="showPostListingModal()" class="bg-white text-emerald-700 py-7 rounded-3xl font-semibold text-lg hover:bg-emerald-50">Post a Service</button>
+                    <button onclick="showPostListingModal()" class="bg-white text-emerald-700 py-7 rounded-3xl font-semibold text-lg hover:bg-emerald-50">Sell an Item</button>
+                    <button onclick="navigateTo('help')" class="bg-white text-emerald-700 py-7 rounded-3xl font-semibold text-lg hover:bg-emerald-50">Request Help</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SERVICES SECTION ==================== -->
+    <section id="services-section" class="py-16 bg-white hidden">
+        <div class="max-w-7xl mx-auto px-5">
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold">Services</h1>
+                <p class="text-gray-600 mt-3">Professional help from trusted locals</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 mb-10">
+                <select id="service-category-filter" onchange="filterServices()" 
+                        class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-green-600">
+                    <option value="">All Services</option>
+                    <option value="Repair">Repair</option>
+                    <option value="Installation">Installation</option>
+                    <option value="Cleaning">Cleaning</option>
+                    <option value="Transport">Transport</option>
+                    <option value="Rent">Rent</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <input type="text" id="service-location-filter" placeholder="Filter by location (e.g. Lilongwe, Blantyre)" 
+                       class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-green-600 flex-1 max-w-xs"
+                       onkeyup="if(event.key === 'Enter') filterServices()">
+                
+                <button onclick="filterServices()" 
+                        class="px-8 py-3 bg-emerald-700 text-white rounded-3xl font-medium hover:bg-emerald-800">
+                    <i class="fa-solid fa-filter"></i> Filter
+                </button>
+            </div>
+
+            <div id="services-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Dynamically populated by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== MARKETPLACE SECTION ==================== -->
+    <section id="marketplace-section" class="py-16 md:py-20 bg-gray-100 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8">Marketplace</h2>
+            
+            <div class="flex flex-wrap items-center gap-4 mb-10">
+                <select id="category-filter" onchange="performSearch()" 
+                        class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-green-600">
+                    <option value="">All Categories</option>
+                    <option value="Agriculture">Agriculture</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Fashion & Clothing">Fashion & Clothing</option>
+                    <option value="Home & Furniture">Home & Furniture</option>
+                    <option value="Vehicles">Vehicles</option>
+                    <option value="Real Estate">Real Estate</option>
+                    <option value="Services">Services</option>
+                    <option value="Beauty & Health">Beauty & Health</option>
+                    <option value="Entertainment">Entertainment</option>
+                    <option value="Kids & Baby Items">Kids & Baby Items</option>
+                    <option value="Industrial Equipment">Industrial Equipment</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <input type="text" id="marketplace-location-filter" placeholder="Location (Lilongwe, Blantyre, etc.)" 
+                       class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-green-600 flex-1 max-w-xs"
+                       onkeyup="if(event.key === 'Enter') performSearch()">
+
+                <button onclick="performSearch()" 
+                        class="px-8 py-3 bg-emerald-700 text-white rounded-3xl font-medium hover:bg-emerald-800">
+                    Search
+                </button>
+            </div>
+
+            <div id="marketplace-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+
+            <div class="text-center mt-12">
+                <button onclick="loadMoreProducts()" id="load-more-btn"
+                        class="px-10 py-4 bg-green-700 text-white font-semibold rounded-3xl hover:bg-green-800 text-lg hidden">
+                    Load More Products
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== SELL SECTION ==================== -->
+    <section id="sell-section" class="py-16 md:py-20 bg-white hidden">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <h2 class="text-4xl md:text-5xl font-bold mb-6">Sell on Malawi Market</h2>
+            <div class="bg-green-50 border border-green-200 rounded-3xl p-8 md:p-10 mb-12">
+                <h3 class="text-2xl font-semibold mb-6 text-green-800">Listing Fee: None</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-3">What you get:</h4>
+                        <ul class="list-disc list-inside text-gray-700 space-y-2">
+                            <li>Access to thousands of local buyers</li>
+                            <li>Easy listing process with photos and descriptions</li>
+                            <li>Secure transactions through our platform</li>
+                            <li>Dedicated seller support team</li>
+                            <li>Ability to manage listings and track sales</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-xl font-semibold mb-3">How it works:</h4>
+                        <ol class="list-decimal list-inside text-gray-700 space-y-2">
+                            <li>Create an account or log in to your existing one.</li>
+                            <li>Click "Post Your Product Now" to create a new listing.</li>
+                            <li>Fill in product details, upload photos, and set your price.</li>
+                            <li>Submit your listing for review by our team.</li>
+                            <li>Once approved, your product will be live on the marketplace!</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            <button onclick="showPostListingModal()" class="w-full sm:w-auto px-16 py-8 bg-green-700 text-white text-2xl font-bold rounded-3xl hover:bg-green-800">
+                Post Your Product Now
+            </button>
+        </div>
+    </section>
+
+    <!-- ==================== SELLER DASHBOARD ==================== -->
+    <section id="seller-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-4xl font-bold">Seller Dashboard</h2>
+                    <p class="text-gray-600">Welcome back, <span id="seller-name" class="font-semibold text-green-700"></span></p>
+                </div>
+                <button onclick="showPostListingModal()" 
+                        class="px-8 py-3 bg-green-700 text-white font-medium rounded-3xl hover:bg-green-800 flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Post New Listing
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
+                    <p id="seller-total" class="text-5xl font-bold text-green-700 mt-2">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Pending</p>
+                    <p id="seller-pending" class="text-5xl font-bold text-amber-600 mt-2">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Live</p>
+                    <p id="seller-approved" class="text-5xl font-bold text-emerald-600 mt-2">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Sold</p>
+                    <p id="seller-sold" class="text-5xl font-bold text-gray-700 mt-2">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow p-8">
+                <h3 class="text-2xl font-semibold mb-6">My Listings</h3>
+                <div id="my-listings-container" class="space-y-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== ADMIN DASHBOARD ==================== -->
+    <section id="admin-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-4xl font-bold">Admin Dashboard</h2>
+                <button onclick="refreshAdminDashboard()" 
+                        class="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-3xl hover:bg-gray-50 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Pending Approvals</p>
+                    <p id="admin-pending-count" class="text-5xl font-bold text-amber-600 mt-2">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Live Products</p>
+                    <p id="admin-live-count" class="text-5xl font-bold text-emerald-600 mt-2">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
+                    <p id="admin-total-count" class="text-5xl font-bold text-green-700 mt-2">0</p>
+                </div>
+                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                    <p class="text-sm uppercase tracking-widest text-gray-500">Rejected</p>
+                    <p id="admin-rejected-count" class="text-5xl font-bold text-red-600 mt-2">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow p-8 mb-10">
+                <h3 class="text-2xl font-semibold mb-6">Pending Listings (Approval)</h3>
+                <div id="admin-empty-state" class="hidden text-center py-16">No pending listings</div>
+                <table class="w-full" id="admin-table">
+                    <thead>
+                        <tr class="border-b">
+                            <th class="text-left py-4">Product</th>
+                            <th class="text-left py-4">Seller</th>
+                            <th class="text-left py-4">Price</th>
+                            <th class="text-center py-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-tbody" class="divide-y"></tbody>
+                </table>
+            </div>
+
+            <div class="bg-white rounded-3xl shadow p-8">
+                <h3 class="text-2xl font-semibold mb-6">Live Products on Marketplace</h3>
+                <div id="admin-live-empty" class="hidden text-center py-16">No live products</div>
+                <div id="admin-live-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== MODALS ==================== -->
+    <!-- Login Modal -->
+    <div id="login-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-3xl font-bold">Login</h3>
+                <button onclick="hideLoginModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
+            </div>
+            <select id="login-role" class="w-full p-4 border rounded-3xl mb-6">
+                <option value="seller">Seller</option>
+                <option value="admin">Admin</option>
+            </select>
+            <input id="login-username" type="text" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-4">
+            <input id="login-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-8">
+            <button id="login-submit-btn" onclick="performLogin()" 
+                    class="w-full py-6 bg-green-700 text-white font-bold rounded-3xl flex items-center justify-center gap-2">
+                Login
+            </button>
+        </div>
+    </div>
+
+    <!-- Signup Modal -->
+    <div id="signup-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full">
+            <div class="flex justify-between items-center mb-8">
+                <h3 class="text-3xl font-bold">Create Account</h3>
+                <button onclick="hideSignupModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
+            </div>
+            <input id="signup-name" type="text" placeholder="Full Name" class="w-full p-5 border rounded-3xl mb-4">
+            <input id="signup-phone" type="tel" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-6">
+            <input id="signup-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-6">
+            <button id="signup-submit-btn" onclick="performSignup()" 
+                    class="w-full py-6 bg-green-700 text-white font-bold rounded-3xl flex items-center justify-center gap-2">
+                Create Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Post Listing Modal -->
+    <div id="post-listing-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-10 max-h-[90vh] overflow-auto">
+            <h3 class="text-3xl font-bold mb-8">Create New Listing</h3>
+            
+            <input id="listing-title" type="text" placeholder="Title (e.g. Professional Plumbing Service)" 
+                   class="w-full p-5 border rounded-3xl mb-4">
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <input id="listing-price" type="number" placeholder="Price in MWK" 
+                       class="w-full p-5 border rounded-3xl">
+                <select id="listing-type" onchange="toggleSubCategory()" 
+                        class="w-full p-5 border rounded-3xl">
+                    <option value="item">Item (Marketplace)</option>
+                    <option value="service" selected>Service</option>
+                </select>
+            </div>
+
+            <select id="listing-category" onchange="toggleSubCategory()" 
+                    class="w-full p-5 border rounded-3xl mb-4">
+                <option value="">Select Main Category</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Fashion & Clothing">Fashion & Clothing</option>
+                <option value="Home & Furniture">Home & Furniture</option>
+                <option value="Vehicles">Vehicles</option>
+                <option value="Real Estate">Real Estate</option>
+                <option value="Services" selected>Services</option>
+                <option value="Beauty & Health">Beauty & Health</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <div id="sub-service-container" class="mb-4">
+                <label class="block text-sm font-medium mb-2 text-gray-700">Specific Service Type</label>
+                <select id="sub-service" class="w-full p-5 border rounded-3xl">
+                    <option value="">-- Select Specific Service --</option>
+                    <option value="Electrician">Electrician</option>
+                    <option value="Plumber">Plumber</option>
+                    <option value="Rent">Renting</option>
+                    <option value="Phone & Laptop Repair">Phone & Laptop Repair</option>
+                    <option value="General Handyman">General Handyman</option>
+                    <option value="Fridge & AC Repair">Fridge & AC Repair</option>
+                    <option value="TV & Electronics Repair">TV & Electronics Repair</option>
+                    <option value="Solar Installation">Solar Installation</option>
+                    <option value="House Cleaning">House Cleaning</option>
+                    <option value="Car Mechanic">Car Mechanic</option>
+                    <option value="Painting Services">Painting Services</option>
+                    <option value="CCTV & Security">CCTV & Security</option>
+                    <option value="Transport & Delivery">Transport & Delivery</option>
+                </select>
+            </div>
+
+            <textarea id="listing-desc" placeholder="Description" 
+                      class="w-full p-5 border rounded-3xl my-4 h-32"></textarea>
+
+            <div class="bg-gray-50 p-6 rounded-3xl mb-6">
+                <h4 class="font-semibold mb-4">Seller Information</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input id="seller-name" type="text" placeholder="Your Full Name" 
+                           class="w-full p-5 border rounded-3xl">
+                    <input id="seller-location" type="text" placeholder="Location (e.g. Lilongwe, Blantyre)" 
+                           class="w-full p-5 border rounded-3xl">
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-3xl mb-6">
+                <h4 class="font-semibold mb-4">Contact Details</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input id="seller-phone" type="tel" placeholder="Phone Number" 
+                           class="w-full p-5 border rounded-3xl">
+                    <input id="seller-whatsapp" type="tel" placeholder="WhatsApp Number" 
+                           class="w-full p-5 border rounded-3xl">
+                </div>
+            </div>
+
+            <label class="block mb-4 font-medium">Upload up to 6 images</label>
+            <input type="file" id="image-upload" multiple accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+            <div onclick="document.getElementById('image-upload').click()" 
+                 class="border-2 border-dashed border-green-300 hover:border-green-500 rounded-3xl p-12 text-center cursor-pointer">
+                Click to upload images
+            </div>
+            <div id="preview-container" class="grid grid-cols-6 gap-3 mt-6"></div>
+
+            <div class="flex gap-4 mt-10">
+                <button onclick="hidePostListingModal()" class="flex-1 py-6 border rounded-3xl">Cancel</button>
+                <button id="submit-listing-btn" onclick="submitListing()" 
+                        class="flex-1 py-6 bg-emerald-700 text-white rounded-3xl font-bold">
+                    Submit for Approval
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="product-detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div class="p-6 border-b flex justify-between items-center">
+                <h2 id="detail-title" class="text-2xl font-bold"></h2>
+                <button onclick="closeProductDetail()" class="text-4xl">×</button>
+            </div>
+            <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 180px);">
+                <div id="detail-images" class="mb-6 space-y-4"></div>
+                <p id="detail-price" class="text-3xl font-bold text-green-700 mb-4"></p>
+                <p id="detail-seller-info" class="text-sm text-gray-600 mb-4"></p>
+                <p id="detail-desc" class="text-gray-600 leading-relaxed"></p>
+            </div>
+            <div class="p-6 border-t flex gap-4">
+                <button id="detail-call-btn" class="flex-1 py-5 bg-gray-100 hover:bg-gray-200 rounded-3xl text-lg font-medium">📞 Call Seller</button>
+                <button id="detail-whatsapp-btn" class="flex-1 py-5 bg-green-600 hover:bg-green-700 text-white rounded-3xl text-lg font-medium">
+                    <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Zoom Modal -->
+    <div id="image-zoom-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[200] p-4">
+        <div class="relative max-w-4xl w-full">
+            <button onclick="closeImageZoom()" class="absolute -top-12 right-4 text-white text-5xl">×</button>
+            <img id="zoomed-image" src="" class="w-full rounded-2xl" onclick="closeImageZoom()">
+        </div>
+    </div>
+
+    <!-- ==================== FOOTER ==================== -->
+    <footer class="bg-black text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="flex items-center gap-4 mb-10">
+                <div class="logo-box text-3xl">🛍️</div>
+                <div class="header-text  font-bold text-white">SimpoBay</div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
+                <div>
+                    <p class="text-gray-400">Connecting Malawians through honest, local trade.</p>
+
+                </div>
+                
+                <div>
+                    <h4 class="font-semibold mb-4">Platform</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <div>Home</div>
+                        <div>Marketplace</div>
+                        <div>Services</div>
+                        <div>Sell on Market</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">Company</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <div>About Us</div>
+                        <div>Trust & Safety</div>
+                        <div>Privacy Policy</div>
+                        <div>Contact: +265 883 944 589</div>
+                    </div>
+                </div>
+                <div>
+                    <h4 class="font-semibold mb-4">For Sellers</h4>
+                    <div class="space-y-2 text-gray-400">
+                        <div>Listing Fee:MK 500</div>
+                        <div>How to Sell</div>
+                        <div>Seller Dashboard</div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center text-gray-500 text-sm mt-16">
+                © 2026 Malawi Market. All Rights Reserved.
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="script.js"></script>
+
+</body>
+</html>
