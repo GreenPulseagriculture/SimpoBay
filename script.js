@@ -1,4 +1,4 @@
-
+// ==================== GLOBAL VARIABLES ====================
 let supabaseClient = null;
 let currentUser = null;
 let allProducts = [];
@@ -190,10 +190,7 @@ async function uploadImagesToStorage() {
                 .from('listings')
                 .upload(filePath, file, { upsert: true });
 
-            if (error) {
-                console.error("Upload error:", error.message);
-                continue;
-            }
+            if (error) continue;
 
             const { data: { publicUrl } } = supabaseClient.storage
                 .from('listings')
@@ -201,13 +198,13 @@ async function uploadImagesToStorage() {
 
             imageUrls.push(publicUrl);
         } catch (err) {
-            console.error("Storage error:", err);
+            console.error(err);
         }
     }
     return imageUrls;
 }
 
-// ==================== SUBMIT LISTING ====================
+// ==================== SUBMIT LISTING (TITLE IS CLEAN NOW) ====================
 async function submitListing() {
     const btnId = 'submit-listing-btn';
     showButtonLoading(btnId, 'Submitting...');
@@ -226,9 +223,7 @@ async function submitListing() {
     const mainCategory = document.getElementById('listing-category')?.value || 'General';
     const subService = document.getElementById('sub-service')?.value || '';
 
-    let finalTitle = (document.getElementById('listing-title')?.value || '').trim();
-    if (subService) finalTitle = subService + " - " + finalTitle;
-
+    const finalTitle = (document.getElementById('listing-title')?.value || '').trim();
     const price = parseFloat(document.getElementById('listing-price')?.value);
 
     if (!finalTitle || isNaN(price) || price <= 0) {
@@ -330,9 +325,7 @@ async function performLogin() {
     });
 
     hideButtonLoading(btnId);
-    if (error) {
-        return alert("Login failed: " + error.message);
-    }
+    if (error) return alert("Login failed: " + error.message);
 
     currentUser = {
         role: 'seller',
@@ -357,11 +350,8 @@ function finishLogin() {
 
     hideLoginModal();
 
-    if (currentUser.role === 'admin') {
-        showAdminDashboard();
-    } else {
-        showSellerDashboard();
-    }
+    if (currentUser.role === 'admin') showAdminDashboard();
+    else showSellerDashboard();
 }
 
 async function checkAuthState() {
@@ -420,12 +410,9 @@ async function loadMyListings() {
     }
 
     data.forEach(listing => {
-        let actionHTML = '';
-        if (listing.status !== 'sold') {
-            actionHTML = `<button onclick="markAsSold('${listing.id}')" class="px-6 py-2 bg-green-600 text-white rounded-2xl text-sm font-medium hover:bg-green-700">Mark as Sold</button>`;
-        } else {
-            actionHTML = `<span class="text-gray-500 font-medium">Sold</span>`;
-        }
+        let actionHTML = listing.status !== 'sold' 
+            ? `<button onclick="markAsSold('${listing.id}')" class="px-6 py-2 bg-green-600 text-white rounded-2xl text-sm font-medium hover:bg-green-700">Mark as Sold</button>`
+            : `<span class="text-gray-500 font-medium">Sold</span>`;
 
         const div = document.createElement('div');
         div.className = "border rounded-3xl p-6 bg-white flex justify-between items-center";
@@ -554,7 +541,7 @@ async function markAsSold(id) {
     }
 }
 
-// ==================== SERVICES ====================
+// ==================== SERVICES (CLEAN TITLE + GREEN SUBCATEGORY) ====================
 async function loadServices() {
     const container = document.getElementById('services-grid');
     if (!container) return;
@@ -578,8 +565,9 @@ async function loadServices() {
 }
 
 async function filterServices() {
-    const categoryFilter = document.getElementById('service-category-filter').value;
-    const locationFilter = document.getElementById('service-location-filter').value.trim().toLowerCase();
+    const categoryFilter = document.getElementById('service-category-filter')?.value || 'all';
+    const subCategoryFilter = document.getElementById('service-subcategory-filter')?.value || 'all';
+    const locationFilter = document.getElementById('service-location-filter')?.value.trim().toLowerCase();
 
     let query = supabaseClient
         .from('listings')
@@ -587,20 +575,11 @@ async function filterServices() {
         .eq('type', 'service')
         .eq('status', 'approved');
 
-    if (categoryFilter && categoryFilter !== 'all') {
-        query = query.eq('category', categoryFilter);
-    }
-    if (locationFilter) {
-        query = query.ilike('seller_location', `%${locationFilter}%`);
-    }
+    if (categoryFilter && categoryFilter !== 'all') query = query.eq('category', categoryFilter);
+    if (subCategoryFilter && subCategoryFilter !== 'all') query = query.eq('sub_category', subCategoryFilter);
+    if (locationFilter) query = query.ilike('seller_location', `%${locationFilter}%`);
 
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-        console.error("Filter error:", error);
-        return;
-    }
-
+    const { data } = await query.order('created_at', { ascending: false });
     allServices = data || [];
     renderServices(allServices);
 }
@@ -611,12 +590,15 @@ function renderServices(services) {
     container.innerHTML = '';
 
     if (services.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No services found matching your filter.</p>`;
+        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No services found.</p>`;
         return;
     }
 
     services.forEach(item => {
         const imageUrl = getFirstImage(item.images);
+        const subCategoryHTML = item.sub_category ? 
+            `<span class="inline-block mt-2 px-4 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
+
         const card = document.createElement('div');
         card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
 
@@ -625,7 +607,8 @@ function renderServices(services) {
                  class="w-full h-56 object-cover bg-gray-200">
             <div class="p-6">
                 <h4 class="font-semibold text-lg">${item.title}</h4>
-                <p class="text-emerald-600 font-bold text-2xl mt-2">K ${Number(item.price).toLocaleString()}</p>
+                ${subCategoryHTML}
+                <p class="text-emerald-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
                 <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
                 <div class="mt-6 flex gap-3">
@@ -880,6 +863,17 @@ function resetPostForm() {
     }
 }
 
+// ==================== SERVICE FILTER SETUP ====================
+function setupServiceFilters() {
+    const catFilter = document.getElementById('service-category-filter');
+    const subFilter = document.getElementById('service-subcategory-filter');
+    const locFilter = document.getElementById('service-location-filter');
+
+    if (catFilter) catFilter.addEventListener('change', filterServices);
+    if (subFilter) subFilter.addEventListener('change', filterServices);
+    if (locFilter) locFilter.addEventListener('input', filterServices);
+}
+
 // ==================== START APPLICATION ====================
 window.onload = async () => {
     await initSupabase();
@@ -887,18 +881,13 @@ window.onload = async () => {
     await loadProducts();
     await loadServices();
 
-    // Service Filters
-    const serviceCatFilter = document.getElementById('service-category-filter');
-    const serviceLocFilter = document.getElementById('service-location-filter');
-    if (serviceCatFilter) serviceCatFilter.addEventListener('change', filterServices);
-    if (serviceLocFilter) serviceLocFilter.addEventListener('input', filterServices);
+    setupServiceFilters();
 
-    // Auto Services Handler
     const categorySelect = document.getElementById('listing-category');
     if (categorySelect) {
         categorySelect.addEventListener('change', handleCategoryChange);
     }
 
     navigateTo('home');
-    console.log("✅ SimpoBay loaded successfully!");
+    console.log("✅ Simpo loaded successfully!");
 };
