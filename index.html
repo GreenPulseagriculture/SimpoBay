@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Malawi • Buy & Sell Locally</title>
+    <title>Simpo - Malawi • Buy & Sell Locally</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
@@ -14,20 +14,6 @@
             font-family: 'Poppins', sans-serif; 
         }
         
-        .logo-box {
-            width: 10px; 
-            height: 10px;
-            background: linear-gradient(135deg, #3553e4, #502cd1);
-            color: white;
-            font-size: 1.8rem; 
-            font-weight: 800;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            border-radius: 14px;
-            box-shadow: 0 4px 12px -2px rgb(21 128 61 / 0.3);
-        }
-
         .nav-link {
             transition: all 0.3s ease;
         }
@@ -38,11 +24,11 @@
         }
 
         .profile-icon {
-            width: 46px;
-            height: 46px;
-            background: #f8fafc;
+            width: 48px;
+            height: 48px;
+            background: #f1f5f9;
             color: #166534;
-            font-size: 1.6rem;
+            font-size: 1.65rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -93,10 +79,23 @@
                 
                 <!-- Logo -->
                 <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
-                    <div class="logo-box">🛍️</div>
+                    <div class="flex items-center justify-center w-12 h-12">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect width="48" height="48" rx="14" fill="url(#gradient)"/>
+                            <path d="M15 13 L24 8 L33 13 L33 24 L24 30 L15 24 Z" fill="white" fill-opacity="0.95"/>
+                            <circle cx="24" cy="19.5" r="4.5" fill="#10b981"/>
+                            <path d="M17 26 H31" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                            <defs>
+                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#10b981"/>
+                                    <stop offset="100%" stop-color="#047857"/>
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                    </div>
                     <div>
-                        <span class="text-2xl font-bold tracking-tight text-blue-900">SimpoBay</span>
-                        <span class="text-blue-500 font-bold text-2xl tracking-tight"></span>
+                        <span class="text-3xl font-bold tracking-tighter text-gray-900">SIMPO</span>
+                        <p class="text-[10px] font-medium text-emerald-600 tracking-[1px] -mt-1">BUY • SELL • SERVICES</p>
                     </div>
                 </div>
 
@@ -118,7 +117,7 @@
 
                     <!-- Profile -->
                     <div onclick="toggleProfileDropdown()" id="profile-btn"
-                         class="w-11 h-11 bg-emerald-100 text-emerald-700 flex items-center justify-center rounded-2xl text-2xl cursor-pointer hover:bg-emerald-200 transition-all border border-emerald-200">
+                         class="profile-icon">
                         <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
@@ -184,7 +183,7 @@
                 <a href="#" onclick="navigateTo('home')" class="hover:text-green-700 transition-colors whitespace-nowrap">🏠 Home</a>
                 <a href="#" onclick="navigateTo('marketplace')" class="hover:text-green-700 transition-colors whitespace-nowrap">🛒 Buy items</a>
                 <a href="#" onclick="navigateTo('services')" class="hover:text-green-700 transition-colors whitespace-nowrap">🧰 Services</a>
-                <a href="#" onclick="navigateTo('sell')" class="hover:text-green-700 transition-colors whitespace-nowrap">📉Sell</a>
+                <a href="#" onclick="navigateTo('sell')" class="hover:text-green-700 transition-colors whitespace-nowrap">📉 Sell</a>
             </div>
         </div>
     </div>
@@ -264,7 +263,7 @@
                     <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
                         <span class="text-5xl block mb-4">🔌</span>
                         <h3 class="font-semibold text-lg">Electricians</h3>
-                        <p class="text-sm text-gray-500 mt-1">Available today in Malawi</p>
+                        <p class="text-sm text-gray-500 mt-1">Available today in Lilongwe</p>
                     </div>
                     <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
                         <span class="text-5xl block mb-4">🔧</span>
@@ -328,18 +327,6 @@
                 <select id="service-category-filter" onchange="filterServices()" 
                         class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-green-600">
                     <option value="">All Services</option>
-                    <option value="Repairs & Maintenance">Repairs & Maintenance</option>
-                    <option value="Home Services">Home services</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Automotive">Automotive</option>
-                    <option value="Property & Rentals">Property & Rentals</option>
-                    <option value="Installations">Installations</option>
-                    <option value="Beauty Services">Beauty services</option>
-                    <option value="Food & Catering">Food & Catering</option>
-                    <option value="Cleaning Services">Cleaning Services</option>
-                    <option value="Digital & Tech Services">Digital & Design Services</option>
-                     <option value="Events Services">Events Services</option>
-                    <option value="Other services">Other Services</option>
                 </select>
 
                 <input type="text" id="service-location-filter" placeholder="Filter by location (e.g. Lilongwe, Blantyre)" 
@@ -353,7 +340,7 @@
             </div>
 
             <div id="services-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                
+                <!-- Dynamically populated by JS -->
             </div>
         </div>
     </section>
@@ -573,7 +560,7 @@
         <div class="bg-white rounded-3xl max-w-2xl w-full p-10 max-h-[90vh] overflow-auto">
             <h3 class="text-3xl font-bold mb-8">Create New Listing</h3>
             
-            <input id="listing-title" type="text" placeholder="Title (e.g. Taxi service or Shoes)" 
+            <input id="listing-title" type="text" placeholder="Title (e.g. Professional Plumbing Service)" 
                    class="w-full p-5 border rounded-3xl mb-4">
 
             <div class="grid grid-cols-2 gap-4 mb-4">
@@ -589,7 +576,7 @@
             <select id="listing-category" onchange="toggleSubCategory()" 
                     class="w-full p-5 border rounded-3xl mb-4">
                 <option value="">Select Main Category</option>
-                <option value="Agriculture">Agriculture</option>
+                  <option value="Agriculture">Agriculture</option>
                 <option value="Services" selected>Services</option>
                 <option value="Electronics">Electronics</option>
                 <option value="Food & Groceries">Food & Groceries</option>
@@ -617,7 +604,7 @@
                     <option value="Food & Catering">Food & Catering</option>
                     <option value="Cleaning Services">Cleaning Services</option>
                     <option value="Digital & Tech Services">Digital & Design Services</option>
-                     <option value="Events Services">Events Services</option>
+                    <option value="Events Services">Events Services</option>
                     <option value="Other services">Other Services</option>
                 </select>
             </div>
@@ -696,16 +683,30 @@
     <!-- ==================== FOOTER ==================== -->
     <footer class="bg-black text-white py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
-            <div class="flex items-center gap-4 mb-10">
-                <div class="logo-box text-3xl">🛍️</div>
-                <div class="header-text  font-bold text-white">SimpoBay</div>
+            <div class="flex items-center gap-3 mb-8">
+                <div class="flex items-center justify-center w-11 h-11">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="48" height="48" rx="14" fill="url(#gradient)"/>
+                        <path d="M15 13 L24 8 L33 13 L33 24 L24 30 L15 24 Z" fill="white" fill-opacity="0.95"/>
+                        <circle cx="24" cy="19.5" r="4.5" fill="#10b981"/>
+                        <path d="M17 26 H31" stroke="white" stroke-width="3" stroke-linecap="round"/>
+                        <defs>
+                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#10b981"/>
+                                <stop offset="100%" stop-color="#047857"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-3xl font-bold tracking-tighter text-white">SIMPO</span>
+                    <p class="text-[10px] font-medium text-emerald-400 tracking-[1px]">BUY • SELL • SERVICES</p>
+                </div>
             </div>
             <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
                 <div>
                     <p class="text-gray-400">Connecting Malawians through honest, local trade.</p>
-
                 </div>
-                
                 <div>
                     <h4 class="font-semibold mb-4">Platform</h4>
                     <div class="space-y-2 text-gray-400">
@@ -727,14 +728,14 @@
                 <div>
                     <h4 class="font-semibold mb-4">For Sellers</h4>
                     <div class="space-y-2 text-gray-400">
-                        <div>Listing Fee:MK 500</div>
+                        <div>Listing Fee: MK 500</div>
                         <div>How to Sell</div>
                         <div>Seller Dashboard</div>
                     </div>
                 </div>
             </div>
             <div class="text-center text-gray-500 text-sm mt-16">
-                © 2026 SimpoBay. All Rights Reserved.
+                © 2026 SIMPO. All Rights Reserved. Proudly Made for Malawi.
             </div>
         </div>
     </footer>
