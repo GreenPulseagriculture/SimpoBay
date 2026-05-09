@@ -77,25 +77,25 @@
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
             <div class="flex justify-between items-center h-20">
                 
-                <!-- Logo -->
+                <!-- CIRCLE + DOT LOGO -->
                 <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
                     <div class="flex items-center justify-center w-12 h-12">
                         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect width="48" height="48" rx="14" fill="url(#gradient)"/>
-                            <path d="M15 13 L24 8 L33 13 L33 24 L24 30 L15 24 Z" fill="white" fill-opacity="0.95"/>
-                            <circle cx="24" cy="19.5" r="4.5" fill="#10b981"/>
-                            <path d="M17 26 H31" stroke="white" stroke-width="3" stroke-linecap="round"/>
                             <defs>
-                                <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <linearGradient id="simpoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                     <stop offset="0%" stop-color="#10b981"/>
                                     <stop offset="100%" stop-color="#047857"/>
                                 </linearGradient>
                             </defs>
+                            <circle cx="24" cy="24" r="20" stroke="url(#simpoGrad)" stroke-width="6" fill="none"/>
+                            <circle cx="33" cy="17" r="3.5" fill="#10b981"/>
                         </svg>
                     </div>
                     <div>
-                        <span class="text-3xl font-bold tracking-tighter text-gray-900">SIMPO</span>
-                        <p class="text-[10px] font-medium text-emerald-600 tracking-[1px] -mt-1">BUY • SELL • SERVICES</p>
+                        <span class="text-3xl font-bold tracking-[-2px] text-gray-900">SIMPO</span>
+                        <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
+                            BUY <span class="text-emerald-600">•</span> SELL <span class="text-emerald-600">•</span> SERVICES
+                        </p>
                     </div>
                 </div>
 
@@ -112,7 +112,7 @@
                 <!-- Right Side -->
                 <div class="flex items-center gap-6">
                     <div id="nav-auth-buttons" class="flex items-center gap-4">
-                        <!-- Dynamic buttons will be inserted by JS -->
+                        <!-- Dynamic buttons inserted by JS -->
                     </div>
 
                     <!-- Profile -->
@@ -342,6 +342,13 @@
             <div id="services-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 <!-- Dynamically populated by JS -->
             </div>
+
+            <div class="text-center mt-12">
+                <button id="load-more-services-btn" 
+                        class="px-10 py-4 bg-green-700 text-white font-semibold rounded-3xl hover:bg-green-800 text-lg hidden">
+                    Load More Services
+                </button>
+            </div>
         </div>
     </section>
 
@@ -359,7 +366,7 @@
                     <option value="Electronics">Electronics</option>
                     <option value="Fashion & Clothing">Fashion & Clothing</option>
                     <option value="Home & Furniture">Home & Furniture</option>
-                    <option value="Industrial Equipment">Sports & Outdoors</option>
+                    <option value="Sports & Outdoors">Sports & Outdoors</option>
                     <option value="Beauty & Health">Beauty & Health</option>
                     <option value="Entertainment">Entertainment</option>
                     <option value="Kids & Baby Items">Kids & Baby Items</option>
@@ -380,7 +387,7 @@
             <div id="marketplace-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
 
             <div class="text-center mt-12">
-                <button onclick="loadMoreProducts()" id="load-more-btn"
+                <button id="load-more-btn"
                         class="px-10 py-4 bg-green-700 text-white font-semibold rounded-3xl hover:bg-green-800 text-lg hidden">
                     Load More Products
                 </button>
@@ -525,10 +532,6 @@
                 <h3 class="text-3xl font-bold">Login</h3>
                 <button onclick="hideLoginModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
             </div>
-            <select id="login-role" class="w-full p-4 border rounded-3xl mb-6">
-                <option value="seller">Seller</option>
-                <option value="admin">Admin</option>
-            </select>
             <input id="login-username" type="text" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-4">
             <input id="login-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-8">
             <button id="login-submit-btn" onclick="performLogin()" 
@@ -566,17 +569,15 @@
             <div class="grid grid-cols-2 gap-4 mb-4">
                 <input id="listing-price" type="number" placeholder="Price in MWK" 
                        class="w-full p-5 border rounded-3xl">
-                <select id="listing-type" onchange="toggleSubCategory()" 
-                        class="w-full p-5 border rounded-3xl">
+                <select id="listing-type" class="w-full p-5 border rounded-3xl">
                     <option value="item">Item (Marketplace)</option>
                     <option value="service" selected>Service</option>
                 </select>
             </div>
 
-            <select id="listing-category" onchange="toggleSubCategory()" 
-                    class="w-full p-5 border rounded-3xl mb-4">
+            <select id="listing-category" class="w-full p-5 border rounded-3xl mb-4">
                 <option value="">Select Main Category</option>
-                  <option value="Agriculture">Agriculture</option>
+                <option value="Agriculture">Agriculture</option>
                 <option value="Services" selected>Services</option>
                 <option value="Electronics">Electronics</option>
                 <option value="Food & Groceries">Food & Groceries</option>
@@ -660,7 +661,6 @@
             <div class="p-6 overflow-y-auto" style="max-height: calc(90vh - 180px);">
                 <div id="detail-images" class="mb-6 space-y-4"></div>
                 <p id="detail-price" class="text-3xl font-bold text-green-700 mb-4"></p>
-                <p id="detail-seller-info" class="text-sm text-gray-600 mb-4"></p>
                 <p id="detail-desc" class="text-gray-600 leading-relaxed"></p>
             </div>
             <div class="p-6 border-t flex gap-4">
@@ -684,25 +684,27 @@
     <footer class="bg-black text-white py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center gap-3 mb-8">
+                <!-- Footer Logo - Circle + Dot -->
                 <div class="flex items-center justify-center w-11 h-11">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <rect width="48" height="48" rx="14" fill="url(#gradient)"/>
-                        <path d="M15 13 L24 8 L33 13 L33 24 L24 30 L15 24 Z" fill="white" fill-opacity="0.95"/>
-                        <circle cx="24" cy="19.5" r="4.5" fill="#10b981"/>
-                        <path d="M17 26 H31" stroke="white" stroke-width="3" stroke-linecap="round"/>
                         <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <linearGradient id="simpoGradFooter" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#10b981"/>
                                 <stop offset="100%" stop-color="#047857"/>
                             </linearGradient>
                         </defs>
+                        <circle cx="24" cy="24" r="20" stroke="url(#simpoGradFooter)" stroke-width="6" fill="none"/>
+                        <circle cx="33" cy="17" r="3.5" fill="#10b981"/>
                     </svg>
                 </div>
                 <div>
-                    <span class="text-3xl font-bold tracking-tighter text-white">SIMPO</span>
-                    <p class="text-[10px] font-medium text-emerald-400 tracking-[1px]">BUY • SELL • SERVICES</p>
+                    <span class="text-3xl font-bold tracking-[-2px] text-white">SIMPO</span>
+                    <p class="text-[10px] font-semibold text-slate-400 tracking-[1.5px]">
+                        BUY <span class="text-emerald-400">•</span> SELL <span class="text-emerald-400">•</span> SERVICES
+                    </p>
                 </div>
             </div>
+
             <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
                 <div>
                     <p class="text-gray-400">Connecting Malawians through honest, local trade.</p>
@@ -728,7 +730,7 @@
                 <div>
                     <h4 class="font-semibold mb-4">For Sellers</h4>
                     <div class="space-y-2 text-gray-400">
-                        <div>Listing Fee: MK 500</div>
+                        <div>Listing Fee: None</div>
                         <div>How to Sell</div>
                         <div>Seller Dashboard</div>
                     </div>
