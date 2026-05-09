@@ -6,8 +6,41 @@ let allServices = [];
 let uploadedImages = [];
 let imageFiles = [];
 let currentProduct = null;
+
 let marketplacePage = 1;
+let servicesPage = 1;
 const PAGE_SIZE = 12;
+
+// ==================== TOAST NOTIFICATION ====================
+function showToast(message, type = 'success') {
+    let toastContainer = document.getElementById('toast-container');
+    
+    if (!toastContainer) {
+        toastContainer = document.createElement('div');
+        toastContainer.id = 'toast-container';
+        toastContainer.className = 'fixed bottom-6 right-6 z-50 flex flex-col gap-2';
+        document.body.appendChild(toastContainer);
+    }
+
+    const toast = document.createElement('div');
+    let bgColor = 'bg-gray-700';
+    if (type === 'success') bgColor = 'bg-green-600';
+    else if (type === 'error') bgColor = 'bg-red-600';
+    else if (type === 'warning') bgColor = 'bg-yellow-600';
+
+    toast.className = `px-6 py-4 rounded-2xl shadow-xl text-white flex items-center gap-3 max-w-sm transition-all duration-300 ${bgColor}`;
+
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()" class="ml-auto text-white/80 hover:text-white text-xl leading-none">×</button>
+    `;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        if (toast.parentElement) toast.remove();
+    }, 4500);
+}
 
 // ==================== SUPABASE CLIENT ====================
 async function initSupabase() {
@@ -162,19 +195,144 @@ function openWhatsAppForRequest() {
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
 }
 
-// ==================== AUTO SERVICES HANDLER ====================
-function handleCategoryChange() {
-    const mainCategory = document.getElementById('listing-category')?.value;
-    const listingTypeSelect = document.getElementById('listing-type');
-    const subContainer = document.getElementById('sub-service-container');
+// ==================== LOAD MORE FUNCTIONS ====================
+function loadMoreMarketplace() {
+    marketplacePage++;
+    renderMarketplace();
+}
+
+function loadMoreServices() {
+    servicesPage++;
+    renderServicesPaginated();
+}
+
+function renderMarketplace() {
+    const end = marketplacePage * PAGE_SIZE;
+    renderProducts('marketplace-grid', allProducts.slice(0, end));
     
-    if (mainCategory === "Services") {
-        if (listingTypeSelect) listingTypeSelect.value = "service";
-        if (subContainer) subContainer.classList.remove('hidden');
-    } else {
-        if (listingTypeSelect) listingTypeSelect.value = "item";
-        if (subContainer) subContainer.classList.add('hidden');
+    const loadBtn = document.getElementById('load-more-btn');
+    if (loadBtn) {
+        loadBtn.style.display = (end < allProducts.length) ? 'block' : 'none';
     }
+}
+
+function renderServicesPaginated() {
+    const container = document.getElementById('services-grid');
+    if (!container) return;
+
+    const end = servicesPage * PAGE_SIZE;
+    const paginatedServices = allServices.slice(0, end);
+
+    if (servicesPage === 1) {
+        container.innerHTML = '';
+    }
+
+    if (paginatedServices.length === 0 && servicesPage === 1) {
+        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No services found.</p>`;
+        return;
+    }
+
+    const newItems = paginatedServices.slice((servicesPage - 1) * PAGE_SIZE);
+
+    newItems.forEach(item => {
+        const imageUrl = getFirstImage(item.images);
+        const subCategoryHTML = item.sub_category ? 
+            `<span class="inline-block mt-2 px-4 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
+
+        card.innerHTML = `
+            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
+                 class="w-full h-56 object-cover bg-gray-200">
+            <div class="p-6">
+                <h4 class="font-semibold text-lg">${item.title}</h4>
+                ${subCategoryHTML}
+                <p class="text-emerald-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
+                <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
+                <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
+                <div class="mt-6 flex gap-3">
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'phone')" 
+                            class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'whatsapp')" 
+                            class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                    </button>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => showProductDetail(item.id));
+        container.appendChild(card);
+    });
+
+    const servicesLoadBtn = document.getElementById('load-more-services-btn');
+    if (servicesLoadBtn) {
+        servicesLoadBtn.style.display = (end < allServices.length) ? 'block' : 'none';
+    }
+}
+
+function renderServices(services) {
+    allServices = services || [];
+    servicesPage = 1;
+    renderServicesPaginated();
+}
+
+function renderProducts(containerId, list) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!list || list.length === 0) {
+        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No items found.</p>`;
+        return;
+    }
+
+    list.forEach(product => {
+        const imageUrl = getFirstImage(product.images);
+        const rating = (4 + Math.random() * 1).toFixed(1);
+
+        const card = document.createElement('div');
+        card.className = "product-card bg-white rounded-3xl overflow-hidden cursor-pointer shadow hover:shadow-xl transition-all";
+
+        card.innerHTML = `
+            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
+                 class="w-full h-64 object-cover bg-gray-200">
+            <div class="p-6">
+                <h4 class="font-semibold text-lg mb-2">${product.title}</h4>
+                <div class="flex justify-between items-center mb-3">
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-3xl">${product.category || 'General'}</span>
+                    <div class="flex items-center gap-1 text-amber-500 text-sm">
+                        ★ <span>${rating}</span>
+                    </div>
+                </div>
+                <p class="text-green-700 font-bold text-2xl">K ${Number(product.price).toLocaleString()}</p>
+                <p class="text-sm text-gray-600 mt-2">📍 ${product.seller_location || 'Malawi'}</p>
+                <div class="mt-6 flex gap-3" onclick="event.stopImmediatePropagation()">
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'phone')" 
+                            class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'whatsapp')" 
+                            class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
+                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+                    </button>
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', (e) => {
+            if (!e.target.closest('button')) showProductDetail(product.id);
+        });
+
+        container.appendChild(card);
+    });
+}
+
+function renderFeatured() {
+    renderProducts('home-featured-grid', allProducts.slice(0, 8));
+}
+
+function renderTrending() {
+    renderProducts('trending-grid', allProducts.slice(0, 8));
 }
 
 // ==================== IMAGE UPLOAD ====================
@@ -204,19 +362,19 @@ async function uploadImagesToStorage() {
     return imageUrls;
 }
 
-// ==================== SUBMIT LISTING (TITLE IS CLEAN NOW) ====================
+// ==================== SUBMIT LISTING ====================
 async function submitListing() {
     const btnId = 'submit-listing-btn';
     showButtonLoading(btnId, 'Submitting...');
 
     if (!currentUser) {
         hideButtonLoading(btnId);
-        return alert("Please login first");
+        return showToast("Please login first", "error");
     }
 
     if (imageFiles.length === 0) {
         hideButtonLoading(btnId);
-        return alert("❌ Please upload at least one image for your listing.");
+        return showToast("Please upload at least one image for your listing.", "error");
     }
 
     const listingType = document.getElementById('listing-type')?.value || 'item';
@@ -228,7 +386,7 @@ async function submitListing() {
 
     if (!finalTitle || isNaN(price) || price <= 0) {
         hideButtonLoading(btnId);
-        return alert("Title and valid price are required");
+        return showToast("Title and valid price are required", "error");
     }
 
     const imageUrls = await uploadImagesToStorage();
@@ -254,9 +412,9 @@ async function submitListing() {
     hideButtonLoading(btnId);
 
     if (error) {
-        alert("Error: " + error.message);
+        showToast("Error: " + error.message, "error");
     } else {
-        alert(`✅ ${listingType === 'service' ? 'Service' : 'Product'} submitted successfully!`);
+        showToast(`${listingType === 'service' ? 'Service' : 'Product'} submitted successfully!`, "success");
         hidePostListingModal();
         resetPostForm();
         loadProducts();
@@ -276,7 +434,7 @@ async function performSignup() {
 
     if (!fullName || !phone || !password) {
         hideButtonLoading(btnId);
-        return alert("All fields are required");
+        return showToast("All fields are required", "error");
     }
 
     const cleanPhone = phone.replace(/[^0-9]/g, '');
@@ -289,9 +447,10 @@ async function performSignup() {
     });
 
     hideButtonLoading(btnId);
-    if (error) alert("Signup error: " + error.message);
-    else {
-        alert(`✅ Account created!\nYou can now login with phone: ${phone}`);
+    if (error) {
+        showToast("Signup error: " + error.message, "error");
+    } else {
+        showToast(`Account created! You can now login with phone: ${phone}`, "success");
         hideSignupModal();
         showLoginModal();
     }
@@ -313,7 +472,7 @@ async function performLogin() {
 
     if (!username || !password) {
         hideButtonLoading(btnId);
-        return alert("Phone number and password are required");
+        return showToast("Phone number and password are required", "error");
     }
 
     const cleanPhone = username.replace(/[^0-9]/g, '');
@@ -325,7 +484,9 @@ async function performLogin() {
     });
 
     hideButtonLoading(btnId);
-    if (error) return alert("Login failed: " + error.message);
+    if (error) {
+        return showToast("Login failed: " + error.message, "error");
+    }
 
     currentUser = {
         role: 'seller',
@@ -349,6 +510,7 @@ function finishLogin() {
     }
 
     hideLoginModal();
+    showToast("Login successful!", "success");
 
     if (currentUser.role === 'admin') showAdminDashboard();
     else showSellerDashboard();
@@ -515,7 +677,7 @@ async function loadLiveListingsForAdmin() {
 
 async function approveListing(id) {
     await supabaseClient.from('listings').update({ status: 'approved' }).eq('id', id);
-    alert("✅ Approved!");
+    showToast("Listing approved successfully!", "success");
     loadPendingListings();
     loadLiveListingsForAdmin();
     loadAdminStats();
@@ -526,7 +688,7 @@ async function approveListing(id) {
 async function rejectListing(id) {
     if (!confirm("Reject this listing?")) return;
     await supabaseClient.from('listings').update({ status: 'rejected' }).eq('id', id);
-    alert("Rejected");
+    showToast("Listing rejected", "warning");
     loadPendingListings();
     loadAdminStats();
 }
@@ -534,34 +696,33 @@ async function rejectListing(id) {
 async function markAsSold(id) {
     if (confirm("Mark this listing as sold?")) {
         await supabaseClient.from('listings').update({ status: 'sold' }).eq('id', id);
-        alert("✅ Marked as sold!");
+        showToast("Marked as sold successfully!", "success");
         loadMyListings();
         loadProducts();
         loadServices();
     }
 }
 
-// ==================== SERVICES (CLEAN TITLE + GREEN SUBCATEGORY) ====================
+// ==================== SERVICES & FILTERS ====================
 async function loadServices() {
     const container = document.getElementById('services-grid');
     if (!container) return;
     container.innerHTML = '<p class="col-span-full text-center py-12 text-gray-500">Loading services...</p>';
 
-    const { data, error } = await supabaseClient
-        .from('listings')
-        .select('*')
-        .eq('type', 'service')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
+    try {
+        const { data, error } = await supabaseClient
+            .from('listings')
+            .select('*')
+            .eq('type', 'service')
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false });
 
-    if (error) {
-        console.error(error);
-        container.innerHTML = `<p class="col-span-full text-center py-12 text-red-500">Error loading services.</p>`;
-        return;
+        if (error) throw error;
+        renderServices(data || []);
+    } catch (e) {
+        console.error(e);
+        showToast("Failed to load services", "error");
     }
-
-    allServices = data || [];
-    renderServices(allServices);
 }
 
 async function filterServices() {
@@ -580,116 +741,17 @@ async function filterServices() {
     if (locationFilter) query = query.ilike('seller_location', `%${locationFilter}%`);
 
     const { data } = await query.order('created_at', { ascending: false });
-    allServices = data || [];
-    renderServices(allServices);
+    renderServices(data || []);
 }
 
-function renderServices(services) {
-    const container = document.getElementById('services-grid');
-    if (!container) return;
-    container.innerHTML = '';
+function setupServiceFilters() {
+    const catFilter = document.getElementById('service-category-filter');
+    const subFilter = document.getElementById('service-subcategory-filter');
+    const locFilter = document.getElementById('service-location-filter');
 
-    if (services.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No services found.</p>`;
-        return;
-    }
-
-    services.forEach(item => {
-        const imageUrl = getFirstImage(item.images);
-        const subCategoryHTML = item.sub_category ? 
-            `<span class="inline-block mt-2 px-4 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
-
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
-
-        card.innerHTML = `
-            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
-                 class="w-full h-56 object-cover bg-gray-200">
-            <div class="p-6">
-                <h4 class="font-semibold text-lg">${item.title}</h4>
-                ${subCategoryHTML}
-                <p class="text-emerald-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
-                <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
-                <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
-                <div class="mt-6 flex gap-3">
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'phone')" 
-                            class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'whatsapp')" 
-                            class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
-                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                    </button>
-                </div>
-            </div>
-        `;
-
-        card.addEventListener('click', () => showProductDetail(item.id));
-        container.appendChild(card);
-    });
-}
-
-// ==================== PRODUCT RENDERING ====================
-function renderProducts(containerId, list) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-
-    if (!list || list.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No items found.</p>`;
-        return;
-    }
-
-    list.forEach(product => {
-        const imageUrl = getFirstImage(product.images);
-        const rating = (4 + Math.random() * 1).toFixed(1);
-
-        const card = document.createElement('div');
-        card.className = "product-card bg-white rounded-3xl overflow-hidden cursor-pointer shadow hover:shadow-xl transition-all";
-
-        card.innerHTML = `
-            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
-                 class="w-full h-64 object-cover bg-gray-200">
-            <div class="p-6">
-                <h4 class="font-semibold text-lg mb-2">${product.title}</h4>
-                <div class="flex justify-between items-center mb-3">
-                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-3xl">${product.category || 'General'}</span>
-                    <div class="flex items-center gap-1 text-amber-500 text-sm">
-                        ★ <span>${rating}</span>
-                    </div>
-                </div>
-                <p class="text-green-700 font-bold text-2xl">K ${Number(product.price).toLocaleString()}</p>
-                <p class="text-sm text-gray-600 mt-2">📍 ${product.seller_location || 'Malawi'}</p>
-                <div class="mt-6 flex gap-3" onclick="event.stopImmediatePropagation()">
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'phone')" 
-                            class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'whatsapp')" 
-                            class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
-                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                    </button>
-                </div>
-            </div>
-        `;
-
-        card.addEventListener('click', (e) => {
-            if (!e.target.closest('button')) showProductDetail(product.id);
-        });
-
-        container.appendChild(card);
-    });
-}
-
-function renderFeatured() {
-    renderProducts('home-featured-grid', allProducts.slice(0, 8));
-}
-
-function renderTrending() {
-    renderProducts('trending-grid', allProducts.slice(0, 8));
-}
-
-function renderMarketplace() {
-    const end = marketplacePage * PAGE_SIZE;
-    renderProducts('marketplace-grid', allProducts.slice(0, end));
-    const loadBtn = document.getElementById('load-more-btn');
-    if (loadBtn) loadBtn.style.display = (end < allProducts.length) ? 'block' : 'none';
+    if (catFilter) catFilter.addEventListener('change', filterServices);
+    if (subFilter) subFilter.addEventListener('change', filterServices);
+    if (locFilter) locFilter.addEventListener('input', filterServices);
 }
 
 // ==================== PRODUCT DETAIL ====================
@@ -697,7 +759,7 @@ function showProductDetail(id) {
     currentProduct = allProducts.find(p => String(p.id) === String(id)) || 
                      allServices.find(s => String(s.id) === String(id));
 
-    if (!currentProduct) return alert("Item not found.");
+    if (!currentProduct) return showToast("Item not found.", "error");
 
     document.getElementById('detail-title').textContent = currentProduct.title;
     document.getElementById('detail-price').textContent = `K ${Number(currentProduct.price).toLocaleString()}`;
@@ -731,8 +793,8 @@ function showProductDetail(id) {
     if (wa.length === 9) wa = '265' + wa;
     else if (wa.length === 10 && wa.startsWith('0')) wa = '265' + wa.substring(1);
 
-    document.getElementById('detail-call-btn').onclick = () => phone ? window.location.href = `tel:${phone}` : alert("No phone available");
-    document.getElementById('detail-whatsapp-btn').onclick = () => wa ? window.open(`https://wa.me/${wa}`, '_blank') : alert("No WhatsApp available");
+    document.getElementById('detail-call-btn').onclick = () => phone ? window.location.href = `tel:${phone}` : showToast("No phone available", "warning");
+    document.getElementById('detail-whatsapp-btn').onclick = () => wa ? window.open(`https://wa.me/${wa}`, '_blank') : showToast("No WhatsApp available", "warning");
 
     document.getElementById('product-detail-modal').classList.remove('hidden').classList.add('flex');
 }
@@ -769,7 +831,9 @@ function contactSeller(id, type) {
 // ==================== IMAGE HANDLING ====================
 function handleImageUpload(e) {
     const files = Array.from(e.target.files);
-    if (uploadedImages.length + files.length > 6) return alert("Maximum 6 images allowed!");
+    if (uploadedImages.length + files.length > 6) {
+        return showToast("Maximum 6 images allowed!", "warning");
+    }
 
     files.forEach(file => {
         if (!file.type.startsWith('image/')) return;
@@ -844,6 +908,7 @@ async function loadProducts() {
 
     } catch (e) {
         console.error("Error loading products:", e);
+        showToast("Failed to load products", "error");
     }
 
     renderFeatured();
@@ -863,17 +928,6 @@ function resetPostForm() {
     }
 }
 
-// ==================== SERVICE FILTER SETUP ====================
-function setupServiceFilters() {
-    const catFilter = document.getElementById('service-category-filter');
-    const subFilter = document.getElementById('service-subcategory-filter');
-    const locFilter = document.getElementById('service-location-filter');
-
-    if (catFilter) catFilter.addEventListener('change', filterServices);
-    if (subFilter) subFilter.addEventListener('change', filterServices);
-    if (locFilter) locFilter.addEventListener('input', filterServices);
-}
-
 // ==================== START APPLICATION ====================
 window.onload = async () => {
     await initSupabase();
@@ -882,6 +936,13 @@ window.onload = async () => {
     await loadServices();
 
     setupServiceFilters();
+
+    // Load More Buttons
+    const marketplaceLoadBtn = document.getElementById('load-more-btn');
+    if (marketplaceLoadBtn) marketplaceLoadBtn.addEventListener('click', loadMoreMarketplace);
+
+    const servicesLoadBtn = document.getElementById('load-more-services-btn');
+    if (servicesLoadBtn) servicesLoadBtn.addEventListener('click', loadMoreServices);
 
     const categorySelect = document.getElementById('listing-category');
     if (categorySelect) {
