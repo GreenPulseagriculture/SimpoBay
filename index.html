@@ -9,7 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
+  
+  <style>
         body { 
             font-family: 'Poppins', sans-serif; 
         }
@@ -53,21 +54,6 @@
             background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.70)), 
                         url('images/mateusz-niezgoda-yR-YHOFZR0I-unsplash.jpg') center/cover no-repeat;
         }
-
-        .section-title {
-            font-size: 2.75rem;
-            font-weight: 700;
-            letter-spacing: -0.04em;
-        }
-
-        .product-card {
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .product-card:hover {
-            transform: translateY(-12px);
-            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
-        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -77,27 +63,31 @@
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
             <div class="flex justify-between items-center h-20">
                 
-                <!-- CIRCLE + DOT LOGO -->
+                <!-- REFINED CLEAN LOGO (No Dots) -->
                 <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
                     <div class="flex items-center justify-center w-12 h-12">
                         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <defs>
-                                <linearGradient id="simpoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#10b981"/>
-                                    <stop offset="100%" stop-color="#047857"/>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#1e40af"/>
+                                    <stop offset="100%" stop-color="#3b82f6"/>
                                 </linearGradient>
                             </defs>
-                            <circle cx="24" cy="24" r="20" stroke="url(#simpoGrad)" stroke-width="6" fill="none"/>
-                            <circle cx="33" cy="17" r="3.5" fill="#10b981"/>
+                            <!-- Clean Flowing Symbol -->
+                            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" 
+                                  stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" 
+                                  stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
                         </svg>
                     </div>
                     <div>
-                        <span class="text-3xl font-bold tracking-[-2px] text-gray-900">SIMPO</span>
+                        <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
                         <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
-                            BUY <span class="text-emerald-600">•</span> SELL <span class="text-emerald-600">•</span> SERVICES
+                            BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
                         </p>
                     </div>
                 </div>
+
 
                 <!-- Search -->
                 <div class="flex-1 max-w-2xl mx-8 hidden md:block">
@@ -684,55 +674,46 @@
     <footer class="bg-black text-white py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center gap-3 mb-8">
-                <!-- Footer Logo - Circle + Dot -->
+                <!-- SAME CLEAN LOGO AS HEADER -->
                 <div class="flex items-center justify-center w-11 h-11">
                     <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <linearGradient id="simpoGradFooter" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#10b981"/>
-                                <stop offset="100%" stop-color="#047857"/>
+                            <linearGradient id="logoGradFooter" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1e40af"/>
+                                <stop offset="100%" stop-color="#3b82f6"/>
                             </linearGradient>
                         </defs>
-                        <circle cx="24" cy="24" r="20" stroke="url(#simpoGradFooter)" stroke-width="6" fill="none"/>
-                        <circle cx="33" cy="17" r="3.5" fill="#10b981"/>
+                        <path d="M15 28 Q20 18 26 22 Q32 26 35 18" stroke="url(#logoGradFooter)" stroke-width="5" stroke-linecap="round" fill="none"/>
+                        <path d="M13 20 Q19 30 25 26 Q33 22 36 30" stroke="url(#logoGradFooter)" stroke-width="5" stroke-linecap="round" fill="none"/>
                     </svg>
                 </div>
                 <div>
                     <span class="text-3xl font-bold tracking-[-2px] text-white">SIMPO</span>
                     <p class="text-[10px] font-semibold text-slate-400 tracking-[1.5px]">
-                        BUY <span class="text-emerald-400">•</span> SELL <span class="text-emerald-400">•</span> SERVICES
+                        BUY <span class="text-blue-400">•</span> SELL <span class="text-blue-400">•</span> SERVICES
                     </p>
                 </div>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
-                <div>
-                    <p class="text-gray-400">Connecting Malawians through honest, local trade.</p>
-                </div>
+                <div><p class="text-gray-400">Connecting Malawians through honest, local trade.</p></div>
                 <div>
                     <h4 class="font-semibold mb-4">Platform</h4>
                     <div class="space-y-2 text-gray-400">
-                        <div>Home</div>
-                        <div>Marketplace</div>
-                        <div>Services</div>
-                        <div>Sell on Market</div>
+                        <div>Home</div><div>Marketplace</div><div>Services</div><div>Sell on Market</div>
                     </div>
                 </div>
                 <div>
                     <h4 class="font-semibold mb-4">Company</h4>
                     <div class="space-y-2 text-gray-400">
-                        <div>About Us</div>
-                        <div>Trust & Safety</div>
-                        <div>Privacy Policy</div>
+                        <div>About Us</div><div>Trust & Safety</div><div>Privacy Policy</div>
                         <div>Contact: +265 883 944 589</div>
                     </div>
                 </div>
                 <div>
                     <h4 class="font-semibold mb-4">For Sellers</h4>
                     <div class="space-y-2 text-gray-400">
-                        <div>Listing Fee: None</div>
-                        <div>How to Sell</div>
-                        <div>Seller Dashboard</div>
+                        <div>Listing Fee: None</div><div>How to Sell</div><div>Seller Dashboard</div>
                     </div>
                 </div>
             </div>
