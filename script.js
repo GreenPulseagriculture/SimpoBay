@@ -1,3 +1,4 @@
+
 // ==================== GLOBAL VARIABLES ====================
 let supabaseClient = null;
 let currentUser = null;
@@ -10,6 +11,7 @@ let currentProduct = null;
 let marketplacePage = 1;
 let servicesPage = 1;
 const PAGE_SIZE = 12;
+let searchTimeout = null;
 
 // ==================== TOAST NOTIFICATION ====================
 function showToast(message, type = 'success') {
@@ -191,8 +193,43 @@ function navigateTo(page) {
 }
 
 function openWhatsAppForRequest() {
-    const message = encodeURIComponent("Hello, I need urgent help on how to sell my product or post a service.");
+    const message = encodeURIComponent("Hello, I need urgent help on how to sell my product or post a service .");
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
+}
+
+// ==================== GLOBAL SEARCH (Desktop + Mobile) ====================
+function performSearch() {
+    const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+    if (!query) {
+        navigateTo('home');
+        return;
+    }
+
+    // Search in Products
+    const productResults = allProducts.filter(p => 
+        p.title.toLowerCase().includes(query) || 
+        (p.description || '').toLowerCase().includes(query)
+    );
+
+    // Search in Services
+    const serviceResults = allServices.filter(s => 
+        s.title.toLowerCase().includes(query) || 
+        (s.description || '').toLowerCase().includes(query)
+    );
+
+    if (productResults.length > 0) {
+        navigateTo('marketplace');
+        renderProducts('marketplace-grid', productResults);
+        const loadBtn = document.getElementById('load-more-btn');
+        if (loadBtn) loadBtn.style.display = 'none';
+    } else if (serviceResults.length > 0) {
+        navigateTo('services');
+        allServices = serviceResults;
+        servicesPage = 1;
+        renderServicesPaginated();
+    } else {
+        showToast("No results found for your search", "warning");
+    }
 }
 
 // ==================== LOAD MORE FUNCTIONS ====================
@@ -333,6 +370,46 @@ function renderFeatured() {
 
 function renderTrending() {
     renderProducts('trending-grid', allProducts.slice(0, 8));
+}
+
+// ==================== CHAT SYSTEM ====================
+function openChat() {
+    document.getElementById('chat-modal').classList.remove('hidden').classList.add('flex');
+    loadMessages();
+}
+
+function closeChat() {
+    document.getElementById('chat-modal').classList.add('hidden').classList.remove('flex');
+}
+
+async function sendMessage() {
+    const input = document.getElementById('chat-input');
+    const message = input.value.trim();
+    if (!message || !currentUser) return;
+
+    await supabaseClient.from('messages').insert({
+        sender_id: currentUser.id,
+        sender_name: currentUser.name,
+        message: message
+    });
+
+    input.value = '';
+    loadMessages();
+}
+
+async function loadMessages() {
+    const container = document.getElementById('chat-messages');
+    if (!container) return;
+    const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
+    container.innerHTML = (data || []).map(msg => `
+        <div class="mb-3 ${msg.sender_id === currentUser.id ? 'text-right' : 'text-left'}">
+            <div class="inline-block max-w-[80%] px-4 py-2 rounded-2xl ${msg.sender_id === currentUser.id ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'}">
+                <small class="opacity-75">${msg.sender_name}</small>
+                <p>${msg.message}</p>
+            </div>
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
 }
 
 // ==================== IMAGE UPLOAD ====================
@@ -870,22 +947,6 @@ function removePreviewImage(index) {
     renderPreviews();
 }
 
-// ==================== SEARCH & FILTERS ====================
-function performSearch() {
-    const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
-    const category = document.getElementById('category-filter')?.value || '';
-    const location = document.getElementById('marketplace-location-filter')?.value.trim() || '';
-
-    const filtered = allProducts.filter(p => {
-        const matchQuery = !query || p.title.toLowerCase().includes(query);
-        const matchCat = !category || (p.category || '').toLowerCase() === category.toLowerCase();
-        const matchLocation = !location || (p.seller_location || '').toLowerCase().includes(location.toLowerCase());
-        return matchQuery && matchCat && matchLocation;
-    });
-
-    renderProducts('marketplace-grid', filtered);
-}
-
 // ==================== LOAD PRODUCTS ====================
 async function loadProducts() {
     showProductSkeletons('home-featured-grid', 8);
@@ -937,18 +998,12 @@ window.onload = async () => {
 
     setupServiceFilters();
 
-    // Load More Buttons
     const marketplaceLoadBtn = document.getElementById('load-more-btn');
     if (marketplaceLoadBtn) marketplaceLoadBtn.addEventListener('click', loadMoreMarketplace);
 
     const servicesLoadBtn = document.getElementById('load-more-services-btn');
     if (servicesLoadBtn) servicesLoadBtn.addEventListener('click', loadMoreServices);
 
-    const categorySelect = document.getElementById('listing-category');
-    if (categorySelect) {
-        categorySelect.addEventListener('change', handleCategoryChange);
-    }
-
     navigateTo('home');
-    console.log("✅ Simpo loaded successfully!");
+    console.log("✅ Simpo loaded successfully with Global Search & Chat!");
 };
