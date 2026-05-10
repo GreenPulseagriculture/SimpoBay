@@ -191,7 +191,7 @@ function navigateTo(page) {
 }
 
 function openWhatsAppForRequest() {
-    const message = encodeURIComponent("Hello, I need urgent help with the marketplace.");
+    const message = encodeURIComponent("Hello, I need urgent help on how to sell my product or post a service.");
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
 }
 
