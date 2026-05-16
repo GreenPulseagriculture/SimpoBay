@@ -275,21 +275,31 @@
         </div>
 
         <!-- Trending Now -->
-        <div class="py-20 bg-white">
-            <div class="max-w-7xl mx-auto px-5 sm:px-8">
-                <div class="flex justify-between items-end mb-10">
-                    <div>
-                        <h2 class="section-title text-gray-1200">Trending Now</h2>
-                        <p class="text-gray-600 mt-2">Popular items right now on marketplace</p>
-                    </div>
-                    <button onclick="navigateTo('marketplace')" 
-                            class="text-emerald-700 font-medium flex items-center gap-2 hover:underline">
-                        View All <i class="fa-solid fa-arrow-right"></i>
-                    </button>
-                </div>
-                <div id="trending-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"></div>
+       <div class="py-24 bg-white">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+        <!-- Enhanced Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-6">
+            <div>
+                <h2 class="section-title text-4xl sm:text-5xl font-bold text-gray-1200 tracking-tight">
+                    Trending Now
+                </h2>
+                <p class="text-gray-600 mt-3 text-lg">
+                    Popular items right now on marketplace
+                </p>
             </div>
+            <button onclick="navigateTo('marketplace')" 
+                    class="text-emerald-700 font-semibold flex items-center gap-3 hover:underline group text-lg">
+                View All 
+                <i class="fa-solid fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+            </button>
         </div>
+
+        <!-- Bigger & More Spacious Grid -->
+        <div id="trending-grid" 
+             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 sm:gap-10">
+        </div>
+    </div>
+</div>
 
         <!-- Post Something Section -->
         <div class="py-20 bg-emerald-700 text-white">
