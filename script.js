@@ -1,4 +1,3 @@
-
 // ==================== GLOBAL VARIABLES ====================
 let supabaseClient = null;
 let currentUser = null;
@@ -11,7 +10,6 @@ let currentProduct = null;
 let marketplacePage = 1;
 let servicesPage = 1;
 const PAGE_SIZE = 12;
-let searchTimeout = null;
 
 // ==================== TOAST NOTIFICATION ====================
 function showToast(message, type = 'success') {
@@ -177,12 +175,13 @@ function navigateTo(page) {
     } 
     else if (page === 'services') {
         document.getElementById('services-section').style.display = 'block';
-        loadServices();
+        servicesPage = 1;
+        filterServices();
     } 
     else if (page === 'marketplace') {
         document.getElementById('marketplace-section').style.display = 'block';
         marketplacePage = 1;
-        renderMarketplace();
+        filterMarketplace();
     } 
     else if (page === 'sell') {
         showPostListingModal();
@@ -193,27 +192,37 @@ function navigateTo(page) {
 }
 
 function openWhatsAppForRequest() {
-    const message = encodeURIComponent("Hello, I need urgent help on how to sell my product or post a service .");
+    const message = encodeURIComponent("Hello, I need urgent help on how to sell my product or post a service.");
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
 }
 
-// ==================== GLOBAL SEARCH (Desktop + Mobile) ====================
+// ==================== GLOBAL SEARCH - FIXED (STAYS IN CURRENT SECTION) ====================
 function performSearch() {
     const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
+    
+    const isInMarketplace = document.getElementById('marketplace-section').style.display !== 'none';
+    const isInServices = document.getElementById('services-section').style.display !== 'none';
+
     if (!query) {
+        if (isInMarketplace) {
+            filterMarketplace();
+            return;
+        }
+        if (isInServices) {
+            filterServices();
+            return;
+        }
         navigateTo('home');
         return;
     }
 
-    // Search in Products
     const productResults = allProducts.filter(p => 
-        p.title.toLowerCase().includes(query) || 
+        (p.title || '').toLowerCase().includes(query) || 
         (p.description || '').toLowerCase().includes(query)
     );
 
-    // Search in Services
     const serviceResults = allServices.filter(s => 
-        s.title.toLowerCase().includes(query) || 
+        (s.title || '').toLowerCase().includes(query) || 
         (s.description || '').toLowerCase().includes(query)
     );
 
@@ -232,25 +241,67 @@ function performSearch() {
     }
 }
 
-// ==================== LOAD MORE FUNCTIONS ====================
+// ==================== MARKETPLACE FILTERING ====================
+function filterMarketplace() {
+    const category = document.getElementById('category-filter')?.value || '';
+    const locationFilter = (document.getElementById('marketplace-location-filter')?.value || '').toLowerCase().trim();
+
+    let filtered = allProducts;
+
+    if (category) filtered = filtered.filter(p => p.category === category);
+    if (locationFilter) filtered = filtered.filter(p => 
+        (p.seller_location || '').toLowerCase().includes(locationFilter)
+    );
+
+    marketplacePage = 1;
+    renderProducts('marketplace-grid', filtered.slice(0, PAGE_SIZE));
+
+    const loadBtn = document.getElementById('load-more-btn');
+    if (loadBtn) loadBtn.style.display = (filtered.length > PAGE_SIZE) ? 'block' : 'none';
+}
+
 function loadMoreMarketplace() {
     marketplacePage++;
-    renderMarketplace();
+    const category = document.getElementById('category-filter')?.value || '';
+    const locationFilter = (document.getElementById('marketplace-location-filter')?.value || '').toLowerCase().trim();
+
+    let filtered = allProducts;
+    if (category) filtered = filtered.filter(p => p.category === category);
+    if (locationFilter) filtered = filtered.filter(p => 
+        (p.seller_location || '').toLowerCase().includes(locationFilter)
+    );
+
+    const start = (marketplacePage - 1) * PAGE_SIZE;
+    const newItems = filtered.slice(start, marketplacePage * PAGE_SIZE);
+    
+    renderProducts('marketplace-grid', newItems, true);
+}
+
+// ==================== SERVICES FILTERING ====================
+function filterServices() {
+    const category = document.getElementById('service-category-filter')?.value || '';
+    const locationFilter = (document.getElementById('service-location-filter')?.value || '').toLowerCase().trim();
+
+    let filtered = allServices;
+
+    if (category) filtered = filtered.filter(s => s.category === category);
+    if (locationFilter) filtered = filtered.filter(s => 
+        (s.seller_location || '').toLowerCase().includes(locationFilter)
+    );
+
+    servicesPage = 1;
+    renderServicesPaginatedWithData(filtered);
+}
+
+function renderServicesPaginatedWithData(data) {
+    allServices = data || [];
+    servicesPage = 1;
+    renderServicesPaginated();
 }
 
 function loadMoreServices() {
     servicesPage++;
     renderServicesPaginated();
-}
-
-function renderMarketplace() {
-    const end = marketplacePage * PAGE_SIZE;
-    renderProducts('marketplace-grid', allProducts.slice(0, end));
-    
-    const loadBtn = document.getElementById('load-more-btn');
-    if (loadBtn) {
-        loadBtn.style.display = (end < allProducts.length) ? 'block' : 'none';
-    }
 }
 
 function renderServicesPaginated() {
@@ -260,21 +311,14 @@ function renderServicesPaginated() {
     const end = servicesPage * PAGE_SIZE;
     const paginatedServices = allServices.slice(0, end);
 
-    if (servicesPage === 1) {
-        container.innerHTML = '';
-    }
-
-    if (paginatedServices.length === 0 && servicesPage === 1) {
-        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No services found.</p>`;
-        return;
-    }
+    if (servicesPage === 1) container.innerHTML = '';
 
     const newItems = paginatedServices.slice((servicesPage - 1) * PAGE_SIZE);
 
     newItems.forEach(item => {
         const imageUrl = getFirstImage(item.images);
         const subCategoryHTML = item.sub_category ? 
-            `<span class="inline-block mt-2 px-4 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
+            `<span class="inline-block mt-2 px-4 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
 
         const card = document.createElement('div');
         card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
@@ -285,7 +329,7 @@ function renderServicesPaginated() {
             <div class="p-6">
                 <h4 class="font-semibold text-lg">${item.title}</h4>
                 ${subCategoryHTML}
-                <p class="text-emerald-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
+                <p class="text-blue-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
                 <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
                 <div class="mt-6 flex gap-3">
@@ -315,13 +359,15 @@ function renderServices(services) {
     renderServicesPaginated();
 }
 
-function renderProducts(containerId, list) {
+// ==================== RENDER PRODUCTS ====================
+function renderProducts(containerId, list, append = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
-    container.innerHTML = '';
+
+    if (!append) container.innerHTML = '';
 
     if (!list || list.length === 0) {
-        container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No items found.</p>`;
+        if (!append) container.innerHTML = `<p class="col-span-full text-center py-12 text-gray-500">No items found.</p>`;
         return;
     }
 
@@ -338,12 +384,12 @@ function renderProducts(containerId, list) {
             <div class="p-6">
                 <h4 class="font-semibold text-lg mb-2">${product.title}</h4>
                 <div class="flex justify-between items-center mb-3">
-                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs rounded-3xl">${product.category || 'General'}</span>
+                    <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-3xl">${product.category || 'General'}</span>
                     <div class="flex items-center gap-1 text-amber-500 text-sm">
                         ★ <span>${rating}</span>
                     </div>
                 </div>
-                <p class="text-green-700 font-bold text-2xl">K ${Number(product.price).toLocaleString()}</p>
+                <p class="text-blue-700 font-bold text-2xl">K ${Number(product.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-600 mt-2">📍 ${product.seller_location || 'Malawi'}</p>
                 <div class="mt-6 flex gap-3" onclick="event.stopImmediatePropagation()">
                     <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'phone')" 
@@ -364,55 +410,127 @@ function renderProducts(containerId, list) {
     });
 }
 
-function renderFeatured() {
-    renderProducts('home-featured-grid', allProducts.slice(0, 8));
-}
-
 function renderTrending() {
     renderProducts('trending-grid', allProducts.slice(0, 8));
 }
 
-// ==================== CHAT SYSTEM ====================
-function openChat() {
-    document.getElementById('chat-modal').classList.remove('hidden').classList.add('flex');
-    loadMessages();
-}
+// ==================== PRODUCT DETAIL ====================
+function showProductDetail(id) {
+    currentProduct = allProducts.find(p => String(p.id) === String(id)) || 
+                     allServices.find(s => String(s.id) === String(id));
 
-function closeChat() {
-    document.getElementById('chat-modal').classList.add('hidden').classList.remove('flex');
-}
+    if (!currentProduct) return showToast("Item not found.", "error");
 
-async function sendMessage() {
-    const input = document.getElementById('chat-input');
-    const message = input.value.trim();
-    if (!message || !currentUser) return;
+    document.getElementById('detail-title').textContent = currentProduct.title;
+    document.getElementById('detail-price').textContent = `K ${Number(currentProduct.price).toLocaleString()}`;
+    document.getElementById('detail-desc').textContent = currentProduct.description || "No description provided.";
 
-    await supabaseClient.from('messages').insert({
-        sender_id: currentUser.id,
-        sender_name: currentUser.name,
-        message: message
+    const imagesContainer = document.getElementById('detail-images');
+    imagesContainer.innerHTML = '';
+
+    let images = currentProduct.images || [];
+    if (typeof images === 'string') {
+        try { images = JSON.parse(images); } 
+        catch (e) { images = images ? [images] : []; }
+    }
+
+    if (!Array.isArray(images) || images.length === 0) {
+        images = ["https://picsum.photos/id/1015/800/600"];
+    }
+
+    images.forEach(src => {
+        if (!src) return;
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = "w-full rounded-2xl cursor-pointer object-cover mb-4 bg-gray-100";
+        img.onerror = () => { img.src = 'https://picsum.photos/id/1015/800/600'; };
+        img.onclick = () => zoomImage(src);
+        imagesContainer.appendChild(img);
     });
 
-    input.value = '';
-    loadMessages();
+    const phone = currentProduct.seller_phone || '';
+    let wa = (currentProduct.seller_whatsapp || phone).replace(/[^0-9]/g, '');
+    if (wa.length === 9) wa = '265' + wa;
+    else if (wa.length === 10 && wa.startsWith('0')) wa = '265' + wa.substring(1);
+
+    document.getElementById('detail-call-btn').onclick = () => phone ? window.location.href = `tel:${phone}` : showToast("No phone available", "warning");
+    document.getElementById('detail-whatsapp-btn').onclick = () => wa ? window.open(`https://wa.me/${wa}`, '_blank') : showToast("No WhatsApp available", "warning");
+
+    document.getElementById('product-detail-modal').classList.remove('hidden').classList.add('flex');
 }
 
-async function loadMessages() {
-    const container = document.getElementById('chat-messages');
+function closeProductDetail() {
+    const modal = document.getElementById('product-detail-modal');
+    if (modal) modal.classList.add('hidden').classList.remove('flex');
+}
+
+function zoomImage(src) {
+    document.getElementById('zoomed-image').src = src;
+    document.getElementById('image-zoom-modal').classList.remove('hidden').classList.add('flex');
+}
+
+function closeImageZoom() {
+    const modal = document.getElementById('image-zoom-modal');
+    if (modal) modal.classList.add('hidden').classList.remove('flex');
+}
+
+function contactSeller(id, type) {
+    const product = allProducts.find(p => String(p.id) === String(id)) || 
+                    allServices.find(s => String(s.id) === String(id));
+    if (!product) return;
+
+    const phone = product.seller_phone || '';
+    let wa = (product.seller_whatsapp || phone).replace(/[^0-9]/g, '');
+    if (wa.length === 9) wa = '265' + wa;
+    else if (wa.length === 10 && wa.startsWith('0')) wa = '265' + wa.substring(1);
+
+    if (type === 'phone' && phone) window.location.href = `tel:${phone}`;
+    if (type === 'whatsapp' && wa) window.open(`https://wa.me/${wa}`, '_blank');
+}
+
+// ==================== IMAGE HANDLING ====================
+function handleImageUpload(e) {
+    const files = Array.from(e.target.files);
+    if (uploadedImages.length + files.length > 6) {
+        return showToast("Maximum 6 images allowed!", "warning");
+    }
+
+    files.forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        imageFiles.push(file);
+        const reader = new FileReader();
+        reader.onload = ev => {
+            uploadedImages.push(ev.target.result);
+            renderPreviews();
+        };
+        reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+}
+
+function renderPreviews() {
+    const container = document.getElementById('preview-container');
     if (!container) return;
-    const { data } = await supabaseClient.from('messages').select('*').order('created_at', { ascending: true });
-    container.innerHTML = (data || []).map(msg => `
-        <div class="mb-3 ${msg.sender_id === currentUser.id ? 'text-right' : 'text-left'}">
-            <div class="inline-block max-w-[80%] px-4 py-2 rounded-2xl ${msg.sender_id === currentUser.id ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-800'}">
-                <small class="opacity-75">${msg.sender_name}</small>
-                <p>${msg.message}</p>
-            </div>
-        </div>
-    `).join('');
-    container.scrollTop = container.scrollHeight;
+    container.innerHTML = '';
+    uploadedImages.forEach((src, i) => {
+        const div = document.createElement('div');
+        div.className = "aspect-square rounded-2xl overflow-hidden border relative";
+        div.innerHTML = `
+            <img src="${src}" class="w-full h-full object-cover">
+            <button onclick="removePreviewImage(${i}); event.stopImmediatePropagation()" 
+                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
+        `;
+        container.appendChild(div);
+    });
 }
 
-// ==================== IMAGE UPLOAD ====================
+function removePreviewImage(index) {
+    uploadedImages.splice(index, 1);
+    imageFiles.splice(index, 1);
+    renderPreviews();
+}
+
+// ==================== UPLOAD IMAGES TO STORAGE ====================
 async function uploadImagesToStorage() {
     const imageUrls = [];
     for (let file of imageFiles) {
@@ -496,7 +614,7 @@ async function submitListing() {
         resetPostForm();
         loadProducts();
         if (listingType === 'service') loadServices();
-        if (currentUser.role === 'seller') loadMyListings();
+        if (currentUser && currentUser.role === 'seller') loadMyListings();
     }
 }
 
@@ -650,7 +768,7 @@ async function loadMyListings() {
 
     data.forEach(listing => {
         let actionHTML = listing.status !== 'sold' 
-            ? `<button onclick="markAsSold('${listing.id}')" class="px-6 py-2 bg-green-600 text-white rounded-2xl text-sm font-medium hover:bg-green-700">Mark as Sold</button>`
+            ? `<button onclick="markAsSold('${listing.id}')" class="px-6 py-2 bg-blue-600 text-white rounded-2xl text-sm font-medium hover:bg-blue-700">Mark as Sold</button>`
             : `<span class="text-gray-500 font-medium">Sold</span>`;
 
         const div = document.createElement('div');
@@ -658,9 +776,9 @@ async function loadMyListings() {
         div.innerHTML = `
             <div>
                 <h4 class="font-semibold text-lg">${listing.title}</h4>
-                <p class="text-green-700 font-bold">K ${Number(listing.price).toLocaleString()}</p>
+                <p class="text-blue-700 font-bold">K ${Number(listing.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-600">${listing.seller_name || ''} • ${listing.seller_location || ''}</p>
-                <p class="text-sm ${listing.status === 'approved' ? 'text-green-600' : listing.status === 'sold' ? 'text-gray-500 line-through' : 'text-yellow-600'}">
+                <p class="text-sm ${listing.status === 'approved' ? 'text-blue-600' : listing.status === 'sold' ? 'text-gray-500 line-through' : 'text-yellow-600'}">
                     ${listing.status}
                 </p>
             </div>
@@ -711,7 +829,7 @@ async function loadPendingListings() {
             <td class="py-4">${listing.seller_name || listing.seller_phone || 'N/A'}</td>
             <td class="py-4">K ${Number(listing.price).toLocaleString()}</td>
             <td class="py-4 text-center">
-                <button onclick="approveListing('${listing.id}')" class="bg-green-600 text-white px-4 py-1 rounded-xl text-sm mr-2">Approve</button>
+                <button onclick="approveListing('${listing.id}')" class="bg-blue-600 text-white px-4 py-1 rounded-xl text-sm mr-2">Approve</button>
                 <button onclick="rejectListing('${listing.id}')" class="bg-red-600 text-white px-4 py-1 rounded-xl text-sm">Reject</button>
             </td>
         `;
@@ -745,7 +863,7 @@ async function loadLiveListingsForAdmin() {
             <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
                  class="w-full h-48 object-cover rounded-2xl mb-4">
             <h4 class="font-semibold text-lg">${listing.title}</h4>
-            <p class="text-green-700 font-bold text-xl">K ${Number(listing.price).toLocaleString()}</p>
+            <p class="text-blue-700 font-bold text-xl">K ${Number(listing.price).toLocaleString()}</p>
             <p class="text-sm text-gray-500 mt-1">${typeLabel} • ${listing.seller_location || 'Malawi'}</p>
         `;
         container.appendChild(div);
@@ -780,176 +898,9 @@ async function markAsSold(id) {
     }
 }
 
-// ==================== SERVICES & FILTERS ====================
-async function loadServices() {
-    const container = document.getElementById('services-grid');
-    if (!container) return;
-    container.innerHTML = '<p class="col-span-full text-center py-12 text-gray-500">Loading services...</p>';
-
-    try {
-        const { data, error } = await supabaseClient
-            .from('listings')
-            .select('*')
-            .eq('type', 'service')
-            .eq('status', 'approved')
-            .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        renderServices(data || []);
-    } catch (e) {
-        console.error(e);
-        showToast("Failed to load services", "error");
-    }
-}
-
-async function filterServices() {
-    const categoryFilter = document.getElementById('service-category-filter')?.value || 'all';
-    const subCategoryFilter = document.getElementById('service-subcategory-filter')?.value || 'all';
-    const locationFilter = document.getElementById('service-location-filter')?.value.trim().toLowerCase();
-
-    let query = supabaseClient
-        .from('listings')
-        .select('*')
-        .eq('type', 'service')
-        .eq('status', 'approved');
-
-    if (categoryFilter && categoryFilter !== 'all') query = query.eq('category', categoryFilter);
-    if (subCategoryFilter && subCategoryFilter !== 'all') query = query.eq('sub_category', subCategoryFilter);
-    if (locationFilter) query = query.ilike('seller_location', `%${locationFilter}%`);
-
-    const { data } = await query.order('created_at', { ascending: false });
-    renderServices(data || []);
-}
-
-function setupServiceFilters() {
-    const catFilter = document.getElementById('service-category-filter');
-    const subFilter = document.getElementById('service-subcategory-filter');
-    const locFilter = document.getElementById('service-location-filter');
-
-    if (catFilter) catFilter.addEventListener('change', filterServices);
-    if (subFilter) subFilter.addEventListener('change', filterServices);
-    if (locFilter) locFilter.addEventListener('input', filterServices);
-}
-
-// ==================== PRODUCT DETAIL ====================
-function showProductDetail(id) {
-    currentProduct = allProducts.find(p => String(p.id) === String(id)) || 
-                     allServices.find(s => String(s.id) === String(id));
-
-    if (!currentProduct) return showToast("Item not found.", "error");
-
-    document.getElementById('detail-title').textContent = currentProduct.title;
-    document.getElementById('detail-price').textContent = `K ${Number(currentProduct.price).toLocaleString()}`;
-    document.getElementById('detail-desc').textContent = currentProduct.description || "No description provided.";
-
-    const imagesContainer = document.getElementById('detail-images');
-    imagesContainer.innerHTML = '';
-
-    let images = currentProduct.images || [];
-    if (typeof images === 'string') {
-        try { images = JSON.parse(images); } 
-        catch (e) { images = images ? [images] : []; }
-    }
-
-    if (!Array.isArray(images) || images.length === 0) {
-        images = ["https://picsum.photos/id/1015/800/600"];
-    }
-
-    images.forEach(src => {
-        if (!src) return;
-        const img = document.createElement('img');
-        img.src = src;
-        img.className = "w-full rounded-2xl cursor-pointer object-cover mb-4 bg-gray-100";
-        img.onerror = () => { img.src = 'https://picsum.photos/id/1015/800/600'; };
-        img.onclick = () => zoomImage(src);
-        imagesContainer.appendChild(img);
-    });
-
-    const phone = currentProduct.seller_phone || '';
-    let wa = (currentProduct.seller_whatsapp || phone).replace(/[^0-9]/g, '');
-    if (wa.length === 9) wa = '265' + wa;
-    else if (wa.length === 10 && wa.startsWith('0')) wa = '265' + wa.substring(1);
-
-    document.getElementById('detail-call-btn').onclick = () => phone ? window.location.href = `tel:${phone}` : showToast("No phone available", "warning");
-    document.getElementById('detail-whatsapp-btn').onclick = () => wa ? window.open(`https://wa.me/${wa}`, '_blank') : showToast("No WhatsApp available", "warning");
-
-    document.getElementById('product-detail-modal').classList.remove('hidden').classList.add('flex');
-}
-
-function closeProductDetail() {
-    const modal = document.getElementById('product-detail-modal');
-    if (modal) modal.classList.add('hidden').classList.remove('flex');
-}
-
-function zoomImage(src) {
-    document.getElementById('zoomed-image').src = src;
-    document.getElementById('image-zoom-modal').classList.remove('hidden').classList.add('flex');
-}
-
-function closeImageZoom() {
-    const modal = document.getElementById('image-zoom-modal');
-    if (modal) modal.classList.add('hidden').classList.remove('flex');
-}
-
-function contactSeller(id, type) {
-    const product = allProducts.find(p => String(p.id) === String(id)) || 
-                    allServices.find(s => String(s.id) === String(id));
-    if (!product) return;
-
-    const phone = product.seller_phone || '';
-    let wa = (product.seller_whatsapp || phone).replace(/[^0-9]/g, '');
-    if (wa.length === 9) wa = '265' + wa;
-    else if (wa.length === 10 && wa.startsWith('0')) wa = '265' + wa.substring(1);
-
-    if (type === 'phone' && phone) window.location.href = `tel:${phone}`;
-    if (type === 'whatsapp' && wa) window.open(`https://wa.me/${wa}`, '_blank');
-}
-
-// ==================== IMAGE HANDLING ====================
-function handleImageUpload(e) {
-    const files = Array.from(e.target.files);
-    if (uploadedImages.length + files.length > 6) {
-        return showToast("Maximum 6 images allowed!", "warning");
-    }
-
-    files.forEach(file => {
-        if (!file.type.startsWith('image/')) return;
-        imageFiles.push(file);
-        const reader = new FileReader();
-        reader.onload = ev => {
-            uploadedImages.push(ev.target.result);
-            renderPreviews();
-        };
-        reader.readAsDataURL(file);
-    });
-    e.target.value = '';
-}
-
-function renderPreviews() {
-    const container = document.getElementById('preview-container');
-    if (!container) return;
-    container.innerHTML = '';
-    uploadedImages.forEach((src, i) => {
-        const div = document.createElement('div');
-        div.className = "aspect-square rounded-2xl overflow-hidden border relative";
-        div.innerHTML = `
-            <img src="${src}" class="w-full h-full object-cover">
-            <button onclick="removePreviewImage(${i}); event.stopImmediatePropagation()" 
-                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
-        `;
-        container.appendChild(div);
-    });
-}
-
-function removePreviewImage(index) {
-    uploadedImages.splice(index, 1);
-    imageFiles.splice(index, 1);
-    renderPreviews();
-}
-
-// ==================== LOAD PRODUCTS ====================
+// ==================== LOAD PRODUCTS & SERVICES ====================
 async function loadProducts() {
-    showProductSkeletons('home-featured-grid', 8);
+    showProductSkeletons('trending-grid', 8);
 
     try {
         const { data, error } = await supabaseClient
@@ -961,20 +912,30 @@ async function loadProducts() {
             .limit(60);
 
         if (error) throw error;
-
-        allProducts = (data || []).map(item => ({
-            ...item,
-            rating: (4 + Math.random() * 1).toFixed(1)
-        }));
-
+        allProducts = data || [];
     } catch (e) {
         console.error("Error loading products:", e);
         showToast("Failed to load products", "error");
     }
 
-    renderFeatured();
-    renderMarketplace();
     renderTrending();
+}
+
+async function loadServices() {
+    try {
+        const { data, error } = await supabaseClient
+            .from('listings')
+            .select('*')
+            .eq('type', 'service')
+            .eq('status', 'approved')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        allServices = data || [];
+    } catch (e) {
+        console.error(e);
+        showToast("Failed to load services", "error");
+    }
 }
 
 // ==================== RESET POST FORM ====================
@@ -982,11 +943,6 @@ function resetPostForm() {
     uploadedImages = [];
     imageFiles = [];
     renderPreviews();
-    const btn = document.getElementById('submit-listing-btn');
-    if (btn) {
-        btn.textContent = 'Submit Listing';
-        btn.setAttribute('onclick', 'submitListing()');
-    }
 }
 
 // ==================== START APPLICATION ====================
@@ -996,7 +952,16 @@ window.onload = async () => {
     await loadProducts();
     await loadServices();
 
-    setupServiceFilters();
+    // Attach filter listeners
+    const categoryFilter = document.getElementById('category-filter');
+    const marketplaceLocFilter = document.getElementById('marketplace-location-filter');
+    const serviceCategoryFilter = document.getElementById('service-category-filter');
+    const serviceLocFilter = document.getElementById('service-location-filter');
+
+    if (categoryFilter) categoryFilter.addEventListener('change', filterMarketplace);
+    if (marketplaceLocFilter) marketplaceLocFilter.addEventListener('keyup', filterMarketplace);
+    if (serviceCategoryFilter) serviceCategoryFilter.addEventListener('change', filterServices);
+    if (serviceLocFilter) serviceLocFilter.addEventListener('keyup', filterServices);
 
     const marketplaceLoadBtn = document.getElementById('load-more-btn');
     if (marketplaceLoadBtn) marketplaceLoadBtn.addEventListener('click', loadMoreMarketplace);
@@ -1005,5 +970,5 @@ window.onload = async () => {
     if (servicesLoadBtn) servicesLoadBtn.addEventListener('click', loadMoreServices);
 
     navigateTo('home');
-    console.log("✅ Simpo loaded successfully with Global Search & Chat!");
+    console.log("✅ Simpo Professional Version Loaded Successfully with Fixed Search & Filters");
 };
