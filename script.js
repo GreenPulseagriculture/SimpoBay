@@ -329,7 +329,7 @@ function renderServicesPaginated() {
             <div class="p-6">
                 <h4 class="font-semibold text-lg">${item.title}</h4>
                 ${subCategoryHTML}
-                <p class="text-blue-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
+                <p class="text-black-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
                 <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
                 <div class="mt-6 flex gap-3">
