@@ -453,48 +453,58 @@
         </div>
     </section>
 
-    <!-- SELLER DASHBOARD (Improved) -->
-<section id="seller-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-            <div class="flex items-center gap-5">
-                <div id="seller-avatar-large" class="w-20 h-20 rounded-3xl overflow-hidden border-4 border-white shadow-lg bg-gray-200">
-                    <i class="fa-solid fa-user text-5xl text-gray-400 mt-4"></i>
+    <!-- ==================== IMPROVED SELLER DASHBOARD (Fully Responsive) ==================== -->
+<section id="seller-dashboard" class="py-12 md:py-20 bg-gray-100 hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-10">
+            <div class="flex items-center gap-4">
+                <div id="seller-avatar-large" onclick="document.getElementById('profile-pic-upload').click()" 
+                     class="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl overflow-hidden border-4 border-white shadow-lg bg-gray-200 cursor-pointer flex-shrink-0">
+                    <i class="fa-solid fa-user text-4xl text-gray-400 mt-4"></i>
                 </div>
                 <div>
-                    <h2 class="text-4xl font-bold">Seller Dashboard</h2>
+                    <h2 class="text-3xl sm:text-4xl font-bold text-gray-900">Seller Dashboard</h2>
                     <p class="text-gray-600">Welcome back, <span id="seller-name" class="font-semibold text-blue-700"></span></p>
                 </div>
             </div>
-            <button onclick="showPostListingModal()" class="px-8 py-3 bg-blue-700 text-white font-medium rounded-3xl hover:bg-blue-800 flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> Post New Listing
+            
+            <button onclick="showPostListingModal()" 
+                    class="w-full sm:w-auto px-8 py-4 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-3xl flex items-center justify-center gap-3 transition-all">
+                <i class="fa-solid fa-plus"></i>
+                <span>Post New Listing</span>
             </button>
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-            <div class="bg-white rounded-3xl p-6 text-center shadow">
-                <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
-                <p id="seller-total" class="text-5xl font-bold text-blue-700 mt-2">0</p>
+        <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 mb-10">
+            <div class="bg-white rounded-3xl p-6 text-center shadow-sm">
+                <p class="text-xs sm:text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
+                <p id="seller-total" class="text-4xl sm:text-5xl font-bold text-blue-700 mt-2">0</p>
             </div>
-            <div class="bg-white rounded-3xl p-6 text-center shadow">
-                <p class="text-sm uppercase tracking-widest text-gray-500">Pending</p>
-                <p id="seller-pending" class="text-5xl font-bold text-amber-600 mt-2">0</p>
+            <div class="bg-white rounded-3xl p-6 text-center shadow-sm">
+                <p class="text-xs sm:text-sm uppercase tracking-widest text-gray-500">Pending</p>
+                <p id="seller-pending" class="text-4xl sm:text-5xl font-bold text-amber-600 mt-2">0</p>
             </div>
-            <div class="bg-white rounded-3xl p-6 text-center shadow">
-                <p class="text-sm uppercase tracking-widest text-gray-500">Live</p>
-                <p id="seller-approved" class="text-5xl font-bold text-blue-600 mt-2">0</p>
+            <div class="bg-white rounded-3xl p-6 text-center shadow-sm">
+                <p class="text-xs sm:text-sm uppercase tracking-widest text-gray-500">Live</p>
+                <p id="seller-approved" class="text-4xl sm:text-5xl font-bold text-blue-600 mt-2">0</p>
             </div>
-            <div class="bg-white rounded-3xl p-6 text-center shadow">
-                <p class="text-sm uppercase tracking-widest text-gray-500">Sold</p>
-                <p id="seller-sold" class="text-5xl font-bold text-emerald-600 mt-2">0</p>
+            <div class="bg-white rounded-3xl p-6 text-center shadow-sm">
+                <p class="text-xs sm:text-sm uppercase tracking-widest text-gray-500">Sold</p>
+                <p id="seller-sold" class="text-4xl sm:text-5xl font-bold text-emerald-600 mt-2">0</p>
             </div>
         </div>
 
         <!-- My Listings -->
-        <div class="bg-white rounded-3xl shadow p-8">
-            <h3 class="text-2xl font-semibold mb-6">My Listings</h3>
-            <div id="my-listings-container" class="space-y-6"></div>
+        <div class="bg-white rounded-3xl shadow p-6 sm:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-semibold">My Listings</h3>
+                <span id="listings-count" class="text-sm text-gray-500"></span>
+            </div>
+            <div id="my-listings-container" class="space-y-6">
+            </div>
         </div>
     </div>
 </section>
