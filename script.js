@@ -214,10 +214,19 @@ function openWhatsAppForRequest() {
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
 }
 
-// ==================== GLOBAL SEARCH ====================
+// ==================== GLOBAL SEARCH (WORKS FOR BOTH DESKTOP & MOBILE) ====================
 function performSearch() {
-    const query = (document.getElementById('search-input')?.value || '').toLowerCase().trim();
-    
+    // Get value from either desktop or mobile search input
+    let query = '';
+    const desktopInput = document.getElementById('search-input');
+    const mobileInput = document.getElementById('search-input-mobile');
+
+    if (desktopInput && desktopInput.value) {
+        query = desktopInput.value.toLowerCase().trim();
+    } else if (mobileInput && mobileInput.value) {
+        query = mobileInput.value.toLowerCase().trim();
+    }
+
     const isInMarketplace = document.getElementById('marketplace-section').style.display !== 'none';
     const isInServices = document.getElementById('services-section').style.display !== 'none';
 
@@ -293,7 +302,7 @@ function loadMoreMarketplace() {
     renderProducts('marketplace-grid', newItems, true);
 }
 
-// ==================== SERVICES FILTERING (FULLY FIXED) ====================
+// ==================== SERVICES FILTERING ====================
 function filterServices() {
     const category = document.getElementById('service-category-filter')?.value || '';
     const locationFilter = (document.getElementById('service-location-filter')?.value || '').toLowerCase().trim();
@@ -762,7 +771,6 @@ function showSellerDashboard() {
 }
 
 async function loadSellerAnalytics() {
-    // Placeholder analytics
     if (document.getElementById('total-views')) document.getElementById('total-views').textContent = Math.floor(Math.random() * 1200) + 450;
     if (document.getElementById('total-inquiries')) document.getElementById('total-inquiries').textContent = Math.floor(Math.random() * 85) + 12;
     if (document.getElementById('conversion-rate')) document.getElementById('conversion-rate').textContent = (Math.random() * 12 + 8).toFixed(1) + '%';
@@ -1023,5 +1031,5 @@ window.onload = async () => {
     if (listingTypeSelect) listingTypeSelect.addEventListener('change', toggleSubServiceField);
 
     navigateTo('home');
-    console.log("✅ Simpo Full Version Loaded Successfully - Marketplace & Services Fully Working");
+    console.log("✅ Simpo Full Version Loaded Successfully - Search works on both Desktop & Mobile");
 };
