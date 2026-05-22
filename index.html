@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
+     <style>
         body { 
             font-family: 'Poppins', sans-serif; 
         }
@@ -86,8 +86,8 @@
                     </div>
                 </div>
 
-                <!-- Search -->
-                <div class="flex-1 max-w-2xl mx-8 hidden md:block">
+                <!-- SEARCH BAR -->
+                <div class="flex-1 max-w-2xl mx-8">
                     <div class="relative">
                         <input id="search-input" type="text" placeholder="Search products or services..." 
                                onkeyup="if(event.key==='Enter') performSearch()"
@@ -96,7 +96,7 @@
                     </div>
                 </div>
 
-                <!-- Right Side -->
+                  <!-- Right Side -->
                 <div class="flex items-center gap-6">
                     <div id="nav-auth-buttons" class="flex items-center gap-4">
                         <!-- Dynamic buttons inserted by JS -->
@@ -127,12 +127,9 @@
                     <i class="fa-solid fa-store w-6 text-blue-700"></i>
                     <span>Marketplace</span>
                 </a>
-                <a href="#" onclick="navigateTo('sell'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-tag w-6 text-blue-700"></i>
-                    <span>Sell on Market</span>
-                </a>
-            </div>
-
+                <a href="#" onclick="navigateTo('services'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
+                    <i class="fa-solid fa-wrench w-6 text-blue-700"></i>
+                    <span>Services</span>
             <div id="logged-in-options" class="hidden border-t pt-3">
                 <a href="#" onclick="showSellerDashboard(); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
                     <i class="fa-solid fa-chart-line w-6 text-blue-700"></i>
@@ -170,7 +167,6 @@
                 <a href="#" onclick="navigateTo('home')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏠 Home</a>
                 <a href="#" onclick="navigateTo('marketplace')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🛒 Buy items</a>
                 <a href="#" onclick="navigateTo('services')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🧰 Services</a>
-                <a href="#" onclick="navigateTo('sell')" class="hover:text-blue-700 transition-colors whitespace-nowrap">📉 Sell</a>
             </div>
         </div>
     </div>
@@ -295,6 +291,7 @@
             </div>
         </div>
 
+
         <!-- Post Something Section -->
         <div class="py-20 bg-blue-700 text-white">
             <div class="max-w-4xl mx-auto px-5 text-center">
@@ -309,7 +306,7 @@
         </div>
     </section>
 
-    <!-- ==================== SERVICES SECTION ==================== -->
+   <!-- ==================== FIXED SERVICES SECTION ==================== -->
     <section id="services-section" class="py-16 bg-white hidden">
         <div class="max-w-7xl mx-auto px-5">
             <div class="text-center mb-12">
@@ -317,28 +314,52 @@
                 <p class="text-gray-600 mt-3">Professional help from trusted locals</p>
             </div>
 
-            <div class="flex flex-wrap items-center gap-4 mb-10">
-                <select id="service-category-filter" onchange="filterServices()" 
-                        class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-blue-600">
-                    <option value="">All Services</option>
-                </select>
+            <div class="flex flex-wrap items-end gap-4 mb-10 bg-white p-6 rounded-3xl shadow-sm border">
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <select id="service-category-filter" onchange="filterServices()" 
+                            class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600">
+                        <option value="">All Services</option>
+                        <option value="Cleaning">Cleaning</option>
+                        <option value="Repair">Repair</option>
+                        <option value="Tutoring">Tutoring</option>
+                        <option value="Beauty">Beauty</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Photography">Photography</option>
+                        <option value="Event">Event</option>
+                    </select>
+                </div>
 
-                <input type="text" id="service-location-filter" placeholder="Filter by location (e.g. Lilongwe, Blantyre)" 
-                       class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-blue-600 flex-1 max-w-xs"
-                       onkeyup="if(event.key === 'Enter') filterServices()">
-                
-                <button onclick="filterServices()" 
-                        class="px-8 py-3 bg-blue-700 text-white rounded-3xl font-medium hover:bg-blue-800">
-                    <i class="fa-solid fa-filter"></i> Filter
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Location</label>
+                    <input type="text" id="service-location-filter" placeholder="Lilongwe, Blantyre..." 
+                           class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600" 
+                           onkeyup="if(event.key==='Enter') filterServices()">
+                </div>
+
+                <div class="flex-1 min-w-[160px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Min Price (K)</label>
+                    <input type="number" id="service-min-price" placeholder="5000" 
+                           class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600" 
+                           oninput="filterServices()">
+                </div>
+
+                <div class="flex-1 min-w-[160px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Max Price (K)</label>
+                    <input type="number" id="service-max-price" placeholder="50000" 
+                           class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600" 
+                           oninput="filterServices()">
+                </div>
+
+                <button onclick="filterServices()" class="px-10 py-4 bg-blue-700 text-white rounded-3xl font-medium hover:bg-blue-800 whitespace-nowrap">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
                 </button>
             </div>
 
-            <div id="services-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                <!-- Dynamically populated by JS -->
-            </div>
+            <div id="services-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
 
             <div class="text-center mt-12">
-                <button id="load-more-services-btn" 
+                <button id="load-more-services-btn" onclick="loadMoreServices()" 
                         class="px-10 py-4 bg-blue-700 text-white font-semibold rounded-3xl hover:bg-blue-800 text-lg hidden">
                     Load More Services
                 </button>
@@ -346,42 +367,60 @@
         </div>
     </section>
 
-    <!-- ==================== MARKETPLACE SECTION ==================== -->
-    <section id="marketplace-section" class="py-16 md:py-20 bg-gray-100 hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6">
-            <h2 class="text-4xl md:text-5xl font-bold text-center mb-8">Marketplace</h2>
+    <!-- MARKETPLACE SECTION -->
+    <section id="marketplace-section" class="py-16 bg-gray-100 hidden">
+        <div class="max-w-7xl mx-auto px-5">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-10">Marketplace</h2>
             
-            <div class="flex flex-wrap items-center gap-4 mb-10">
-                <select id="category-filter" onchange="performSearch()" 
-                        class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-blue-600">
-                    <option value="">All Categories</option>
-                    <option value="Agriculture">Agriculture</option>
-                    <option value="Food & Groceries">Food & Groceries</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Fashion & Clothing">Fashion & Clothing</option>
-                    <option value="Home & Furniture">Home & Furniture</option>
-                    <option value="Sports & Outdoors">Sports & Outdoors</option>
-                    <option value="Beauty & Health">Beauty & Health</option>
-                    <option value="Entertainment">Entertainment</option>
-                    <option value="Kids & Baby Items">Kids & Baby Items</option>
-                    <option value="Tools & Equipment">Tools & Equipment</option>
-                    <option value="Other">Other</option>
-                </select>
+            <div class="flex flex-wrap items-end gap-4 mb-10 bg-white p-6 rounded-3xl shadow-sm border">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Category</label>
+                    <select id="category-filter" onchange="filterMarketplace()" class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600">
+                        <option value="">All Categories</option>
+                        <option value="Agriculture">Agriculture</option>
+                        <option value="Food & Groceries">Food & Groceries</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Fashion & Clothing">Fashion & Clothing</option>
+                        <option value="Home & Furniture">Home & Furniture</option>
+                        <option value="Sports & Outdoors">Sports & Outdoors</option>
+                        <option value="Beauty & Health">Beauty & Health</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Kids & Baby Items">Kids & Baby Items</option>
+                        <option value="Tools & Equipment">Tools & Equipment</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
 
-                <input type="text" id="marketplace-location-filter" placeholder="Location (Lilongwe, Blantyre, etc.)" 
-                       class="px-6 py-3 border border-gray-300 rounded-3xl text-base focus:outline-none focus:border-blue-600 flex-1 max-w-xs"
-                       onkeyup="if(event.key === 'Enter') performSearch()">
+                <div class="flex-1 min-w-[180px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Location</label>
+                    <input type="text" id="marketplace-location-filter" placeholder="Lilongwe, Blantyre..." 
+                           class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600" 
+                           onkeyup="if(event.key==='Enter') filterMarketplace()">
+                </div>
 
-                <button onclick="performSearch()" 
-                        class="px-8 py-3 bg-blue-700 text-white rounded-3xl font-medium hover:bg-blue-800">
-                    Search
+                <div class="flex-1 min-w-[160px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Min Price (K)</label>
+                    <input type="number" id="marketplace-min-price" placeholder="1000" 
+                           class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600" 
+                           oninput="filterMarketplace()">
+                </div>
+
+                <div class="flex-1 min-w-[160px]">
+                    <label class="block text-sm font-medium text-gray-600 mb-2">Max Price (K)</label>
+                    <input type="number" id="marketplace-max-price" placeholder="100000" 
+                           class="w-full px-6 py-4 border border-gray-300 rounded-3xl focus:outline-none focus:border-blue-600" 
+                           oninput="filterMarketplace()">
+                </div>
+
+                <button onclick="filterMarketplace()" class="px-10 py-4 bg-blue-700 text-white rounded-3xl font-medium hover:bg-blue-800 whitespace-nowrap">
+                    <i class="fa-solid fa-filter"></i> Apply Filters
                 </button>
             </div>
 
             <div id="marketplace-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
 
             <div class="text-center mt-12">
-                <button id="load-more-btn"
+                <button id="load-more-btn" onclick="loadMoreMarketplace()" 
                         class="px-10 py-4 bg-blue-700 text-white font-semibold rounded-3xl hover:bg-blue-800 text-lg hidden">
                     Load More Products
                 </button>
@@ -389,42 +428,7 @@
         </div>
     </section>
 
-    <!-- ==================== SELL SECTION ==================== -->
-    <section id="sell-section" class="py-16 md:py-20 bg-white hidden">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <h2 class="text-4xl md:text-5xl font-bold mb-6">Sell on Malawi Market</h2>
-            <div class="bg-blue-50 border border-blue-200 rounded-3xl p-8 md:p-10 mb-12">
-                <h3 class="text-2xl font-semibold mb-6 text-blue-800">Listing Fee: None</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
-                    <div>
-                        <h4 class="text-xl font-semibold mb-3">What you get:</h4>
-                        <ul class="list-disc list-inside text-gray-700 space-y-2">
-                            <li>Access to thousands of local buyers</li>
-                            <li>Easy listing process with photos and descriptions</li>
-                            <li>Secure transactions through our platform</li>
-                            <li>Dedicated seller support team</li>
-                            <li>Ability to manage listings and track sales</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="text-xl font-semibold mb-3">How it works:</h4>
-                        <ol class="list-decimal list-inside text-gray-700 space-y-2">
-                            <li>Create an account or log in to your existing one.</li>
-                            <li>Click "Post Your Product Now" to create a new listing.</li>
-                            <li>Fill in product details, upload photos, and set your price.</li>
-                            <li>Submit your listing for review by our team.</li>
-                            <li>Once approved, your product will be live on the marketplace!</li>
-                        </ol>
-                    </div>
-                </div>
-            </div>
-            <button onclick="showPostListingModal()" class="w-full sm:w-auto px-16 py-8 bg-blue-700 text-white text-2xl font-bold rounded-3xl hover:bg-blue-800">
-                Post Your Product Now
-            </button>
-        </div>
-    </section>
-
-    <!-- ==================== SELLER DASHBOARD ==================== -->
+    <!-- SELLER DASHBOARD -->
     <section id="seller-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex justify-between items-center mb-8">
@@ -432,26 +436,25 @@
                     <h2 class="text-4xl font-bold">Seller Dashboard</h2>
                     <p class="text-gray-600">Welcome back, <span id="seller-name" class="font-semibold text-blue-700"></span></p>
                 </div>
-                <button onclick="showPostListingModal()" 
-                        class="px-8 py-3 bg-blue-700 text-white font-medium rounded-3xl hover:bg-blue-800 flex items-center gap-2">
+                <button onclick="showPostListingModal()" class="px-8 py-3 bg-blue-700 text-white font-medium rounded-3xl hover:bg-blue-800 flex items-center gap-2">
                     <i class="fa-solid fa-plus"></i> Post New Listing
                 </button>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
                     <p id="seller-total" class="text-5xl font-bold text-blue-700 mt-2">0</p>
                 </div>
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Pending</p>
                     <p id="seller-pending" class="text-5xl font-bold text-amber-600 mt-2">0</p>
                 </div>
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Live</p>
                     <p id="seller-approved" class="text-5xl font-bold text-blue-600 mt-2">0</p>
                 </div>
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Sold</p>
                     <p id="seller-sold" class="text-5xl font-bold text-gray-700 mt-2">0</p>
                 </div>
@@ -464,40 +467,40 @@
         </div>
     </section>
 
-    <!-- ==================== ADMIN DASHBOARD ==================== -->
+    <!-- ADMIN DASHBOARD -->
     <section id="admin-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex justify-between items-center mb-8">
                 <h2 class="text-4xl font-bold">Admin Dashboard</h2>
-                <button onclick="refreshAdminDashboard()" 
+                <button onclick="loadPendingListings();loadLiveListingsForAdmin();loadAdminStats()" 
                         class="px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-3xl hover:bg-gray-50 flex items-center gap-2">
                     <i class="fa-solid fa-rotate"></i> Refresh
                 </button>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Pending Approvals</p>
                     <p id="admin-pending-count" class="text-5xl font-bold text-amber-600 mt-2">0</p>
                 </div>
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Live Products</p>
                     <p id="admin-live-count" class="text-5xl font-bold text-blue-600 mt-2">0</p>
                 </div>
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
                     <p id="admin-total-count" class="text-5xl font-bold text-blue-700 mt-2">0</p>
                 </div>
-                <div class="stat-card bg-white rounded-3xl p-6 text-center shadow">
+                <div class="bg-white rounded-3xl p-6 text-center shadow">
                     <p class="text-sm uppercase tracking-widest text-gray-500">Rejected</p>
                     <p id="admin-rejected-count" class="text-5xl font-bold text-red-600 mt-2">0</p>
                 </div>
             </div>
 
             <div class="bg-white rounded-3xl shadow p-8 mb-10">
-                <h3 class="text-2xl font-semibold mb-6">Pending Listings (Approval)</h3>
+                <h3 class="text-2xl font-semibold mb-6">Pending Listings</h3>
                 <div id="admin-empty-state" class="hidden text-center py-16">No pending listings</div>
-                <table class="w-full" id="admin-table">
+                <table class="w-full">
                     <thead>
                         <tr class="border-b">
                             <th class="text-left py-4">Product</th>
@@ -511,15 +514,80 @@
             </div>
 
             <div class="bg-white rounded-3xl shadow p-8">
-                <h3 class="text-2xl font-semibold mb-6">Live Products on Marketplace</h3>
+                <h3 class="text-2xl font-semibold mb-6">Live Products</h3>
                 <div id="admin-live-empty" class="hidden text-center py-16">No live products</div>
                 <div id="admin-live-products" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
             </div>
         </div>
     </section>
 
-    <!-- ==================== MODALS ==================== -->
-    <!-- Login Modal -->
+    <!-- POST LISTING MODAL -->
+    <div id="post-listing-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-3xl max-w-2xl w-full p-10 max-h-[90vh] overflow-auto">
+            <h3 class="text-3xl font-bold mb-8">Create New Listing</h3>
+            
+            <input id="listing-title" type="text" placeholder="Title" class="w-full p-5 border rounded-3xl mb-4">
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <input id="listing-price" type="number" placeholder="Price in MWK" class="w-full p-5 border rounded-3xl">
+                <select id="listing-type" onchange="toggleSubServiceField()" class="w-full p-5 border rounded-3xl">
+                    <option value="item">Item (Marketplace)</option>
+                    <option value="service">Service</option>
+                </select>
+            </div>
+
+            <select id="listing-category" class="w-full p-5 border rounded-3xl mb-4">
+                <option value="">Select Main Category</option>
+                <option value="Agriculture">Agriculture</option>
+                <option value="Food & Groceries">Food & Groceries</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Fashion & Clothing">Fashion & Clothing</option>
+                <option value="Home & Furniture">Home & Furniture</option>
+                <option value="Sports & Outdoors">Sports & Outdoors</option>
+                <option value="Beauty & Health">Beauty & Health</option>
+                <option value="Entertainment">Entertainment</option>
+                <option value="Tools & Equipment">Tools & Equipment</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <div id="sub-service-container" class="mb-4 hidden">
+                <label class="block text-sm font-medium mb-2 text-gray-700">Specific Service Type</label>
+                <select id="sub-service" class="w-full p-5 border rounded-3xl"></select>
+            </div>
+
+            <textarea id="listing-desc" placeholder="Description" class="w-full p-5 border rounded-3xl my-4 h-32"></textarea>
+
+            <div class="bg-gray-50 p-6 rounded-3xl mb-6">
+                <h4 class="font-semibold mb-4">Seller Information</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input id="seller-name" type="text" placeholder="Your Full Name" class="w-full p-5 border rounded-3xl">
+                    <input id="seller-location" type="text" placeholder="Location" class="w-full p-5 border rounded-3xl">
+                </div>
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-3xl mb-6">
+                <h4 class="font-semibold mb-4">Contact Details</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <input id="seller-phone" type="tel" placeholder="Phone Number" class="w-full p-5 border rounded-3xl">
+                    <input id="seller-whatsapp" type="tel" placeholder="WhatsApp Number" class="w-full p-5 border rounded-3xl">
+                </div>
+            </div>
+
+            <label class="block mb-4 font-medium">Upload up to 6 images</label>
+            <input type="file" id="image-upload" multiple accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+            <div onclick="document.getElementById('image-upload').click()" class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-3xl p-12 text-center cursor-pointer">
+                Click to upload images
+            </div>
+            <div id="preview-container" class="grid grid-cols-6 gap-3 mt-6"></div>
+
+            <div class="flex gap-4 mt-10">
+                <button onclick="hidePostListingModal()" class="flex-1 py-6 border rounded-3xl">Cancel</button>
+                <button id="submit-listing-btn" onclick="submitListing()" class="flex-1 py-6 bg-blue-700 text-white rounded-3xl font-bold">Submit for Approval</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIN MODAL -->
     <div id="login-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-8 max-w-md w-full">
             <div class="flex justify-between items-center mb-8">
@@ -528,14 +596,11 @@
             </div>
             <input id="login-username" type="text" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-4">
             <input id="login-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-8">
-            <button id="login-submit-btn" onclick="performLogin()" 
-                    class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl flex items-center justify-center gap-2">
-                Login
-            </button>
+            <button id="login-submit-btn" onclick="performLogin()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Login</button>
         </div>
     </div>
 
-    <!-- Signup Modal -->
+    <!-- SIGNUP MODAL -->
     <div id="signup-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl p-8 max-w-md w-full">
             <div class="flex justify-between items-center mb-8">
@@ -545,107 +610,11 @@
             <input id="signup-name" type="text" placeholder="Full Name" class="w-full p-5 border rounded-3xl mb-4">
             <input id="signup-phone" type="tel" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-6">
             <input id="signup-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-6">
-            <button id="signup-submit-btn" onclick="performSignup()" 
-                    class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl flex items-center justify-center gap-2">
-                Create Account
-            </button>
+            <button id="signup-submit-btn" onclick="performSignup()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Create Account</button>
         </div>
     </div>
 
-    <!-- Post Listing Modal -->
-    <div id="post-listing-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl max-w-2xl w-full p-10 max-h-[90vh] overflow-auto">
-            <h3 class="text-3xl font-bold mb-8">Create New Listing</h3>
-            
-            <input id="listing-title" type="text" placeholder="Title (e.g. Professional Plumbing Service)" 
-                   class="w-full p-5 border rounded-3xl mb-4">
-
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <input id="listing-price" type="number" placeholder="Price in MWK" 
-                       class="w-full p-5 border rounded-3xl">
-                <select id="listing-type" class="w-full p-5 border rounded-3xl">
-                    <option value="item">Item (Marketplace)</option>
-                    <option value="service" selected>Service</option>
-                </select>
-            </div>
-
-            <select id="listing-category" class="w-full p-5 border rounded-3xl mb-4">
-                <option value="">Select Main Category</option>
-                <option value="Agriculture">Agriculture</option>
-                <option value="Services" selected>Services</option>
-                <option value="Electronics">Electronics</option>
-                <option value="Food & Groceries">Food & Groceries</option>
-                <option value="Fashion & Clothing">Fashion & Clothing</option>
-                <option value="Home & Furniture">Home & Furniture</option>
-                <option value="Sports & Outdoors">Sports & Outdoors</option>
-                <option value="Beauty & Health">Beauty & Health</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Industrial Equipment">Tools & Equipments</option>
-                <option value="Kids & Baby Items">Kids & Baby Items</option>
-                <option value="Other">Other</option>
-            </select>
-
-            <div id="sub-service-container" class="mb-4">
-                <label class="block text-sm font-medium mb-2 text-gray-700">Specific Service Type</label>
-                <select id="sub-service" class="w-full p-5 border rounded-3xl">
-                    <option value="">-- Select Specific Service --</option>
-                    <option value="Repairs & Maintenance">Repairs & Maintenance</option>
-                    <option value="Home Services">Home services</option>
-                    <option value="Transport">Transport</option>
-                    <option value="Automotive">Automotive</option>
-                    <option value="Property & Rentals">Property & Rentals</option>
-                    <option value="Installations">Installations</option>
-                    <option value="Beauty Services">Beauty services</option>
-                    <option value="Food & Catering">Food & Catering</option>
-                    <option value="Cleaning Services">Cleaning Services</option>
-                    <option value="Digital & Tech Services">Digital & Design Services</option>
-                    <option value="Events Services">Events Services</option>
-                    <option value="Other services">Other Services</option>
-                </select>
-            </div>
-
-            <textarea id="listing-desc" placeholder="Description" 
-                      class="w-full p-5 border rounded-3xl my-4 h-32"></textarea>
-
-            <div class="bg-gray-50 p-6 rounded-3xl mb-6">
-                <h4 class="font-semibold mb-4">Seller Information</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input id="seller-name" type="text" placeholder="Your Full Name" 
-                           class="w-full p-5 border rounded-3xl">
-                    <input id="seller-location" type="text" placeholder="Location (e.g. Lilongwe, Blantyre)" 
-                           class="w-full p-5 border rounded-3xl">
-                </div>
-            </div>
-
-            <div class="bg-gray-50 p-6 rounded-3xl mb-6">
-                <h4 class="font-semibold mb-4">Contact Details</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <input id="seller-phone" type="tel" placeholder="Phone Number" 
-                           class="w-full p-5 border rounded-3xl">
-                    <input id="seller-whatsapp" type="tel" placeholder="WhatsApp Number" 
-                           class="w-full p-5 border rounded-3xl">
-                </div>
-            </div>
-
-            <label class="block mb-4 font-medium">Upload up to 6 images</label>
-            <input type="file" id="image-upload" multiple accept="image/*" class="hidden" onchange="handleImageUpload(event)">
-            <div onclick="document.getElementById('image-upload').click()" 
-                 class="border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-3xl p-12 text-center cursor-pointer">
-                Click to upload images
-            </div>
-            <div id="preview-container" class="grid grid-cols-6 gap-3 mt-6"></div>
-
-            <div class="flex gap-4 mt-10">
-                <button onclick="hidePostListingModal()" class="flex-1 py-6 border rounded-3xl">Cancel</button>
-                <button id="submit-listing-btn" onclick="submitListing()" 
-                        class="flex-1 py-6 bg-blue-700 text-white rounded-3xl font-bold">
-                    Submit for Approval
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Product Detail Modal -->
+    <!-- PRODUCT DETAIL MODAL -->
     <div id="product-detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
             <div class="p-6 border-b flex justify-between items-center">
@@ -666,7 +635,7 @@
         </div>
     </div>
 
-    <!-- Image Zoom Modal -->
+    <!-- IMAGE ZOOM MODAL -->
     <div id="image-zoom-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center z-[200] p-4">
         <div class="relative max-w-4xl w-full">
             <button onclick="closeImageZoom()" class="absolute -top-12 right-4 text-white text-5xl">×</button>
@@ -674,7 +643,7 @@
         </div>
     </div>
 
-    <!-- ==================== FOOTER ==================== -->
+    <!-- FOOTER -->
     <footer class="bg-black text-white py-16">
         <div class="max-w-7xl mx-auto px-4 sm:px-6">
             <div class="flex items-center gap-3 mb-8">
@@ -728,6 +697,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="script.js"></script>
-
 </body>
 </html>
