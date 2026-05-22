@@ -121,11 +121,17 @@
 
         <!-- Profile Dropdown -->
         <div id="profile-dropdown" class="hidden absolute right-6 top-20 bg-white rounded-3xl shadow-2xl py-5 w-80 z-50 border border-gray-100">
-            <div id="dropdown-user-info" class="px-6 py-4 border-b hidden">
-                <p class="font-semibold text-gray-800" id="dropdown-username"></p>
-                <p class="text-sm text-gray-500" id="dropdown-role"></p>
+    <div id="dropdown-user-info" class="px-6 py-4 border-b hidden text-center">
+        <div class="relative w-20 h-20 mx-auto mb-3">
+            <div id="profile-avatar" onclick="document.getElementById('profile-pic-upload').click()" 
+                 class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-md cursor-pointer bg-gray-200">
+                <i class="fa-solid fa-user text-4xl text-gray-400 mt-5"></i>
             </div>
-            
+            <input type="file" id="profile-pic-upload" accept="image/*" class="hidden" onchange="handleProfilePicUpload(event)">
+        </div>
+        <p class="font-semibold text-gray-800" id="dropdown-username"></p>
+        <p class="text-sm text-gray-500" id="dropdown-role"></p>
+    </div>
             <div class="py-3 text-lg">
                 <a href="#" onclick="navigateTo('home'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
                     <i class="fa-solid fa-house w-6 text-blue-700"></i><span>Home</span>
@@ -447,44 +453,51 @@
         </div>
     </section>
 
-    <!-- SELLER DASHBOARD -->
-    <section id="seller-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6">
-            <div class="flex justify-between items-center mb-8">
+    <!-- SELLER DASHBOARD (Improved) -->
+<section id="seller-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+            <div class="flex items-center gap-5">
+                <div id="seller-avatar-large" class="w-20 h-20 rounded-3xl overflow-hidden border-4 border-white shadow-lg bg-gray-200">
+                    <i class="fa-solid fa-user text-5xl text-gray-400 mt-4"></i>
+                </div>
                 <div>
                     <h2 class="text-4xl font-bold">Seller Dashboard</h2>
                     <p class="text-gray-600">Welcome back, <span id="seller-name" class="font-semibold text-blue-700"></span></p>
                 </div>
-                <button onclick="showPostListingModal()" class="px-8 py-3 bg-blue-700 text-white font-medium rounded-3xl hover:bg-blue-800 flex items-center gap-2">
-                    <i class="fa-solid fa-plus"></i> Post New Listing
-                </button>
             </div>
+            <button onclick="showPostListingModal()" class="px-8 py-3 bg-blue-700 text-white font-medium rounded-3xl hover:bg-blue-800 flex items-center gap-2">
+                <i class="fa-solid fa-plus"></i> Post New Listing
+            </button>
+        </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
-                <div class="bg-white rounded-3xl p-6 text-center shadow">
-                    <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
-                    <p id="seller-total" class="text-5xl font-bold text-blue-700 mt-2">0</p>
-                </div>
-                <div class="bg-white rounded-3xl p-6 text-center shadow">
-                    <p class="text-sm uppercase tracking-widest text-gray-500">Pending</p>
-                    <p id="seller-pending" class="text-5xl font-bold text-amber-600 mt-2">0</p>
-                </div>
-                <div class="bg-white rounded-3xl p-6 text-center shadow">
-                    <p class="text-sm uppercase tracking-widest text-gray-500">Live</p>
-                    <p id="seller-approved" class="text-5xl font-bold text-blue-600 mt-2">0</p>
-                </div>
-                <div class="bg-white rounded-3xl p-6 text-center shadow">
-                    <p class="text-sm uppercase tracking-widest text-gray-500">Sold</p>
-                    <p id="seller-sold" class="text-5xl font-bold text-gray-700 mt-2">0</p>
-                </div>
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+            <div class="bg-white rounded-3xl p-6 text-center shadow">
+                <p class="text-sm uppercase tracking-widest text-gray-500">Total Listings</p>
+                <p id="seller-total" class="text-5xl font-bold text-blue-700 mt-2">0</p>
             </div>
-
-            <div class="bg-white rounded-3xl shadow p-8">
-                <h3 class="text-2xl font-semibold mb-6">My Listings</h3>
-                <div id="my-listings-container" class="space-y-6"></div>
+            <div class="bg-white rounded-3xl p-6 text-center shadow">
+                <p class="text-sm uppercase tracking-widest text-gray-500">Pending</p>
+                <p id="seller-pending" class="text-5xl font-bold text-amber-600 mt-2">0</p>
+            </div>
+            <div class="bg-white rounded-3xl p-6 text-center shadow">
+                <p class="text-sm uppercase tracking-widest text-gray-500">Live</p>
+                <p id="seller-approved" class="text-5xl font-bold text-blue-600 mt-2">0</p>
+            </div>
+            <div class="bg-white rounded-3xl p-6 text-center shadow">
+                <p class="text-sm uppercase tracking-widest text-gray-500">Sold</p>
+                <p id="seller-sold" class="text-5xl font-bold text-emerald-600 mt-2">0</p>
             </div>
         </div>
-    </section>
+
+        <!-- My Listings -->
+        <div class="bg-white rounded-3xl shadow p-8">
+            <h3 class="text-2xl font-semibold mb-6">My Listings</h3>
+            <div id="my-listings-container" class="space-y-6"></div>
+        </div>
+    </div>
+</section>
 
     <!-- ADMIN DASHBOARD -->
     <section id="admin-dashboard" class="py-16 md:py-20 bg-gray-100 hidden">
