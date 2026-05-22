@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-     <style>
+   <style>
         body { 
             font-family: 'Poppins', sans-serif; 
         }
@@ -53,6 +53,20 @@
             background: linear-gradient(rgba(0,0,0,0.55), rgba(0,0,0,0.70)), 
                         url('images/mateusz-niezgoda-yR-YHOFZR0I-unsplash.jpg') center/cover no-repeat;
         }
+
+        /* Mobile Search Styling */
+        .mobile-search {
+            display: none;
+        }
+
+        @media (max-width: 640px) {
+            .desktop-search {
+                display: none;
+            }
+            .mobile-search {
+                display: block;
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
@@ -62,7 +76,7 @@
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
             <div class="flex justify-between items-center h-20">
                 
-                <!-- REFINED CLEAN LOGO -->
+                <!-- LOGO -->
                 <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
                     <div class="flex items-center justify-center w-12 h-12">
                         <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -72,10 +86,8 @@
                                     <stop offset="100%" stop-color="#3b82f6"/>
                                 </linearGradient>
                             </defs>
-                            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" 
-                                  stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" 
-                                  stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
                         </svg>
                     </div>
                     <div>
@@ -86,8 +98,8 @@
                     </div>
                 </div>
 
-                <!-- SEARCH BAR -->
-                <div class="flex-1 max-w-2xl mx-8">
+                <!-- SEARCH BAR - DESKTOP ONLY -->
+                <div class="flex-1 max-w-2xl mx-8 desktop-search">
                     <div class="relative">
                         <input id="search-input" type="text" placeholder="Search products or services..." 
                                onkeyup="if(event.key==='Enter') performSearch()"
@@ -96,15 +108,11 @@
                     </div>
                 </div>
 
-                  <!-- Right Side -->
+                <!-- Right Side -->
                 <div class="flex items-center gap-6">
-                    <div id="nav-auth-buttons" class="flex items-center gap-4">
-                        <!-- Dynamic buttons inserted by JS -->
-                    </div>
+                    <div id="nav-auth-buttons" class="flex items-center gap-4"></div>
 
-                    <!-- Profile -->
-                    <div onclick="toggleProfileDropdown()" id="profile-btn"
-                         class="profile-icon">
+                    <div onclick="toggleProfileDropdown()" id="profile-btn" class="profile-icon">
                         <i class="fa-solid fa-user"></i>
                     </div>
                 </div>
@@ -120,52 +128,63 @@
             
             <div class="py-3 text-lg">
                 <a href="#" onclick="navigateTo('home'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-house w-6 text-blue-700"></i>
-                    <span>Home</span>
+                    <i class="fa-solid fa-house w-6 text-blue-700"></i><span>Home</span>
                 </a>
                 <a href="#" onclick="navigateTo('marketplace'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-store w-6 text-blue-700"></i>
-                    <span>Marketplace</span>
+                    <i class="fa-solid fa-store w-6 text-blue-700"></i><span>Marketplace</span>
                 </a>
                 <a href="#" onclick="navigateTo('services'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-wrench w-6 text-blue-700"></i>
-                    <span>Services</span>
+                    <i class="fa-solid fa-wrench w-6 text-blue-700"></i><span>Services</span>
+                </a>
+            </div>
+
             <div id="logged-in-options" class="hidden border-t pt-3">
                 <a href="#" onclick="showSellerDashboard(); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-chart-line w-6 text-blue-700"></i>
-                    <span>Seller Dashboard</span>
+                    <i class="fa-solid fa-chart-line w-6 text-blue-700"></i><span>Seller Dashboard</span>
                 </a>
                 <a href="#" onclick="showAdminDashboard(); toggleProfileDropdown()" id="admin-link" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50 hidden">
-                    <i class="fa-solid fa-shield-halved w-6 text-blue-700"></i>
-                    <span>Admin Dashboard</span>
+                    <i class="fa-solid fa-shield-halved w-6 text-blue-700"></i><span>Admin Dashboard</span>
                 </a>
                 <button onclick="logout()" class="w-full text-left px-6 py-4 hover:bg-red-50 flex items-center gap-4 text-red-600">
-                    <i class="fa-solid fa-right-from-bracket"></i>
-                    <span>Logout</span>
+                    <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
                 </button>
             </div>
 
             <div id="logged-out-options" class="border-t pt-4 mt-2">
-                <button onclick="showLoginModal(); toggleProfileDropdown()" 
-                        class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
-                    <i class="fa-solid fa-right-to-bracket text-blue-700"></i>
-                    <span>Log In</span>
+                <button onclick="showLoginModal(); toggleProfileDropdown()" class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
+                    <i class="fa-solid fa-right-to-bracket text-blue-700"></i><span>Log In</span>
                 </button>
-                <button onclick="showSignupModal(); toggleProfileDropdown()" 
-                        class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
-                    <i class="fa-solid fa-user-plus text-blue-700"></i>
-                    <span>Sign Up</span>
+                <button onclick="showSignupModal(); toggleProfileDropdown()" class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
+                    <i class="fa-solid fa-user-plus text-blue-700"></i><span>Sign Up</span>
                 </button>
             </div>
         </div>
     </nav>
 
-    <!-- ==================== SECONDARY NAV ==================== -->
+    <!-- ==================== SECONDARY NAV WITH MOBILE SEARCH ==================== -->
     <div class="secondary-nav sticky top-20 z-40 bg-white border-b">
         <div class="max-w-7xl mx-auto px-5 sm:px-8">
-            <div class="flex items-center gap-8 text-sm font-medium text-gray-600 overflow-x-auto py-4 hide-scrollbar">
+            <!-- Desktop Links -->
+            <div class="hidden sm:flex items-center gap-8 text-sm font-medium text-gray-600 overflow-x-auto py-4">
                 <a href="#" onclick="navigateTo('home')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏠 Home</a>
                 <a href="#" onclick="navigateTo('marketplace')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🛒 Buy items</a>
+                <a href="#" onclick="navigateTo('services')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🧰 Services</a>
+            </div>
+
+            <!-- Mobile Search + Links -->
+            <div class="sm:hidden py-3">
+                <div class="relative mobile-search">
+                    <input id="search-input-mobile" type="text" placeholder="Search products or services..." 
+                           onkeyup="if(event.key==='Enter') performSearch()"
+                           class="w-full pl-12 pr-5 py-3 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none">
+                    <i onclick="performSearch()" class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
+                </div>
+            </div>
+
+            <!-- Mobile Links -->
+            <div class="flex sm:hidden items-center gap-6 text-sm font-medium text-gray-600 overflow-x-auto py-3">
+                <a href="#" onclick="navigateTo('home')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏠 Home</a>
+                <a href="#" onclick="navigateTo('marketplace')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🛒 Market</a>
                 <a href="#" onclick="navigateTo('services')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🧰 Services</a>
             </div>
         </div>
@@ -173,14 +192,11 @@
 
     <!-- ==================== HOME SECTION ==================== -->
     <section id="home-section">
-
-        <!-- Hero -->
+        <!-- Your existing home content remains unchanged -->
         <div class="hero-bg h-screen flex items-center text-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6">
                 <div class="max-w-2xl">
-                    <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">
-                        Find what you need<br><span class="text-blue-300">near you</span>
-                    </h1>
+                    <h1 class="text-5xl md:text-7xl font-bold leading-tight mb-6">Find what you need<br><span class="text-blue-300">near you</span></h1>
                     <p class="text-lg md:text-xl mb-10">Services, items, and people ready to help in Malawi.</p>
                     <div class="flex flex-col sm:flex-row gap-4">
                         <button onclick="navigateTo('services')" class="px-10 py-5 bg-white text-blue-700 font-bold text-xl rounded-3xl hover:scale-105 transition-all">Find Services</button>
