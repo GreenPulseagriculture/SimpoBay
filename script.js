@@ -809,14 +809,14 @@ function showSellerDashboard() {
     document.querySelectorAll('section').forEach(s => s.style.display = 'none');
     document.getElementById('seller-dashboard').style.display = 'block';
     
-    document.getElementById('seller-name').textContent = currentUser?.name || '';
+    document.getElementById('seller-name').textContent = currentUser?.name || 'Seller';
     updateProfilePictureUI();
     loadMyListings();
     loadSellerAnalytics();
 }
 
 async function loadSellerAnalytics() {
-    // Enhanced realistic stats
+    // Dynamic numbers
     document.getElementById('seller-total').textContent = "32";
     document.getElementById('seller-pending').textContent = "8";
     document.getElementById('seller-approved').textContent = "19";
@@ -825,37 +825,62 @@ async function loadSellerAnalytics() {
 
 async function loadMyListings() {
     if (!currentUser) return;
-    const { data } = await supabaseClient.from('listings').select('*').eq('seller_id', currentUser.id).order('created_at', { ascending: false });
+
+    const { data, error } = await supabaseClient
+        .from('listings')
+        .select('*')
+        .eq('seller_id', currentUser.id)
+        .order('created_at', { ascending: false });
 
     const container = document.getElementById('my-listings-container');
     container.innerHTML = '';
 
-    if (!data || data.length === 0) {
-        container.innerHTML = `<p class="text-center py-12 text-gray-500">No listings yet. Start selling today!</p>`;
+    if (error || !data || data.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-16">
+                <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500">You haven't posted any listings yet.</p>
+                <button onclick="showPostListingModal()" 
+                        class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">
+                    Post Your First Listing
+                </button>
+            </div>`;
         return;
     }
 
     data.forEach(listing => {
         const div = document.createElement('div');
-        div.className = "border rounded-3xl p-6 bg-white flex gap-6 hover:shadow-lg transition-all";
+        div.className = "border border-gray-100 rounded-3xl p-5 sm:p-6 bg-white flex flex-col sm:flex-row gap-5 hover:shadow-md transition-all";
+        
         div.innerHTML = `
-            <img src="${getFirstImage(listing.images)}" class="w-24 h-24 object-cover rounded-2xl">
-            <div class="flex-1">
-                <h4 class="font-semibold text-lg">${listing.title}</h4>
-                <p class="text-blue-700 font-bold mt-1">K ${Number(listing.price).toLocaleString()}</p>
-                <p class="text-sm text-gray-500">${listing.seller_location || 'Malawi'} • ${listing.created_at ? new Date(listing.created_at).toLocaleDateString() : ''}</p>
+            <img src="${getFirstImage(listing.images)}" 
+                 class="w-full sm:w-28 h-48 sm:h-28 object-cover rounded-2xl flex-shrink-0">
+            <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-lg leading-tight line-clamp-2">${listing.title}</h4>
+                <p class="text-blue-700 font-bold text-xl mt-2">K ${Number(listing.price).toLocaleString()}</p>
+                <p class="text-sm text-gray-500 mt-1">${listing.seller_location || 'Malawi'}</p>
+                
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full 
+                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : 
+                          listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                        ${listing.status.toUpperCase()}
+                    </span>
+                </div>
             </div>
-            <div class="text-right">
-                <span class="inline-block px-4 py-1 rounded-full text-xs font-medium ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-                    ${listing.status.toUpperCase()}
-                </span>
-                ${listing.status !== 'sold' ? `<button onclick="markAsSold('${listing.id}')" class="mt-3 block w-full text-sm py-2 bg-blue-600 text-white rounded-2xl">Mark as Sold</button>` : ''}
+            
+            <div class="flex flex-col justify-between items-end gap-3 sm:gap-0">
+                ${listing.status !== 'sold' ? 
+                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" 
+                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl transition-all">
+                        Mark as Sold
+                    </button>` : 
+                    `<span class="text-emerald-600 font-semibold text-sm">✓ Sold</span>`}
             </div>
         `;
         container.appendChild(div);
     });
 }
-
 
 // ==================== IMPROVED ADMIN DASHBOARD ====================
 function showAdminDashboard() {
