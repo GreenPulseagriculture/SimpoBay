@@ -4,6 +4,8 @@ let currentUser = null;
 let allProducts = [];
 let allServices = [];
 let currentFilteredServices = [];
+let currentFilteredProducts = [];
+
 let uploadedImages = [];
 let imageFiles = [];
 let currentProduct = null;
@@ -56,48 +58,72 @@ async function initSupabase() {
     });
 }
 
-// ==================== PROFILE PICTURE ====================
+// ==================== SIDEBAR / HAMBURGER MENU ====================
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar-menu');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (!sidebar || !overlay) return;
+
+    if (sidebar.classList.contains('-translate-x-full')) {
+        sidebar.classList.remove('-translate-x-full');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    } else {
+        sidebar.classList.add('-translate-x-full');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = 'visible';
+    }
+}
+
+// ==================== PROFILE PICTURE UPLOAD ====================
 async function handleProfilePicUpload(e) {
     const file = e.target.files[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-        return showToast("Please upload an image file", "error");
+        return showToast("Please upload a valid image file", "error");
     }
     await uploadProfilePicture(file);
 }
 
 async function uploadProfilePicture(file) {
-    if (!currentUser) return;
+    if (!currentUser) return showToast("Please login first", "error");
 
     try {
         const fileExt = file.name.split('.').pop();
         const fileName = `profile-${currentUser.id}-${Date.now()}.${fileExt}`;
         const filePath = `profiles/${fileName}`;
 
-        const { error } = await supabaseClient.storage.from('listings').upload(filePath, file, { upsert: true });
-        if (error) throw error;
+        const { error: uploadError } = await supabaseClient.storage
+            .from('listings')
+            .upload(filePath, file, { upsert: true });
 
-        const { data: { publicUrl } } = supabaseClient.storage.from('listings').getPublicUrl(filePath);
+        if (uploadError) throw uploadError;
 
-        await supabaseClient.auth.updateUser({ data: { avatar_url: publicUrl } });
+        const { data: urlData } = supabaseClient.storage
+            .from('listings')
+            .getPublicUrl(filePath);
 
-        currentUser.avatar_url = publicUrl;
+        await supabaseClient.auth.updateUser({ 
+            data: { avatar_url: urlData.publicUrl } 
+        });
+
+        currentUser.avatar_url = urlData.publicUrl;
         updateProfilePictureUI();
-        showToast("Profile picture updated!", "success");
+        showToast("Profile picture updated successfully!", "success");
     } catch (err) {
+        console.error(err);
         showToast("Failed to upload profile picture", "error");
     }
 }
 
 function updateProfilePictureUI() {
-    const avatarSmall = document.getElementById('profile-btn');
     const avatarLarge = document.getElementById('seller-avatar-large');
-    const dropdownAvatar = document.getElementById('profile-avatar');
+    const avatarTop = document.getElementById('profile-avatar');
 
     if (currentUser?.avatar_url) {
-        if (avatarSmall) avatarSmall.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover rounded-full">`;
-        if (avatarLarge) avatarLarge.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover">`;
-        if (dropdownAvatar) dropdownAvatar.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover">`;
+        if (avatarLarge) avatarLarge.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover rounded-3xl">`;
+        if (avatarTop) avatarTop.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover">`;
     }
 }
 
@@ -195,7 +221,6 @@ function toggleSubServiceField() {
     if (listingType === 'service') {
         subServiceContainer.classList.remove('hidden');
         subServiceSelect.innerHTML = '<option value="">Select Sub Service</option>';
-        
         Object.keys(subServicesList).forEach(mainCat => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = mainCat;
@@ -211,22 +236,6 @@ function toggleSubServiceField() {
         subServiceContainer.classList.add('hidden');
     }
 }
-
-// ==================== PROFILE DROPDOWN ====================
-function toggleProfileDropdown() {
-    const dropdown = document.getElementById('profile-dropdown');
-    if (dropdown) dropdown.classList.toggle('hidden');
-}
-
-document.addEventListener('click', function(e) {
-    const dropdown = document.getElementById('profile-dropdown');
-    const profileBtn = document.getElementById('profile-btn');
-    if (profileBtn && dropdown && 
-        !profileBtn.contains(e.target) && 
-        !dropdown.contains(e.target)) {
-        dropdown.classList.add('hidden');
-    }
-});
 
 // ==================== NAVIGATION ====================
 function navigateTo(page) {
@@ -259,14 +268,14 @@ function openWhatsAppForRequest() {
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
 }
 
-// ==================== GLOBAL SEARCH (Desktop + Mobile) ====================
+// ==================== GLOBAL SEARCH ====================
 function performSearch() {
     let query = '';
-    const desktop = document.getElementById('search-input');
+    const desktop = document.getElementById('search-input-desktop');
     const mobile = document.getElementById('search-input-mobile');
 
-    if (desktop && desktop.value) query = desktop.value.toLowerCase().trim();
-    else if (mobile && mobile.value) query = mobile.value.toLowerCase().trim();
+    if (desktop && desktop.value.trim()) query = desktop.value.toLowerCase().trim();
+    else if (mobile && mobile.value.trim()) query = mobile.value.toLowerCase().trim();
 
     if (!query) {
         const isMarketplace = document.getElementById('marketplace-section').style.display !== 'none';
@@ -279,19 +288,22 @@ function performSearch() {
 
     const productResults = allProducts.filter(p => 
         (p.title || '').toLowerCase().includes(query) || 
-        (p.description || '').toLowerCase().includes(query)
+        (p.description || '').toLowerCase().includes(query) ||
+        (p.category || '').toLowerCase().includes(query)
     );
 
     const serviceResults = allServices.filter(s => 
         (s.title || '').toLowerCase().includes(query) || 
-        (s.description || '').toLowerCase().includes(query)
+        (s.description || '').toLowerCase().includes(query) ||
+        (s.category || '').toLowerCase().includes(query)
     );
 
     if (productResults.length > 0) {
         navigateTo('marketplace');
-        renderProducts('marketplace-grid', productResults);
-        const loadBtn = document.getElementById('load-more-btn');
-        if (loadBtn) loadBtn.style.display = 'none';
+        currentFilteredProducts = productResults;
+        marketplacePage = 1;
+        renderProducts('marketplace-grid', currentFilteredProducts.slice(0, PAGE_SIZE));
+        updateLoadMoreButton('load-more-btn', currentFilteredProducts);
     } else if (serviceResults.length > 0) {
         navigateTo('services');
         renderServicesPaginatedWithData(serviceResults);
@@ -300,62 +312,51 @@ function performSearch() {
     }
 }
 
-// ==================== MARKETPLACE FILTERING ====================
+// ==================== MARKETPLACE FILTERING & LOAD MORE ====================
 function filterMarketplace() {
     const category = document.getElementById('category-filter')?.value || '';
     const locationFilter = (document.getElementById('marketplace-location-filter')?.value || '').toLowerCase().trim();
     const minPrice = parseFloat(document.getElementById('marketplace-min-price')?.value) || 0;
     const maxPrice = parseFloat(document.getElementById('marketplace-max-price')?.value) || Infinity;
 
-    let filtered = allProducts;
+    let filtered = allProducts.filter(p => {
+        const matchCat = !category || p.category === category;
+        const matchLoc = !locationFilter || (p.seller_location || '').toLowerCase().includes(locationFilter);
+        const matchPrice = p.price >= minPrice && p.price <= maxPrice;
+        return matchCat && matchLoc && matchPrice;
+    });
 
-    if (category) filtered = filtered.filter(p => p.category === category);
-    if (locationFilter) filtered = filtered.filter(p => 
-        (p.seller_location || '').toLowerCase().includes(locationFilter)
-    );
-    filtered = filtered.filter(p => p.price >= minPrice && p.price <= maxPrice);
-
+    currentFilteredProducts = filtered;
     marketplacePage = 1;
-    renderProducts('marketplace-grid', filtered.slice(0, PAGE_SIZE));
-
-    const loadBtn = document.getElementById('load-more-btn');
-    if (loadBtn) loadBtn.style.display = (filtered.length > PAGE_SIZE) ? 'block' : 'none';
+    renderProducts('marketplace-grid', currentFilteredProducts.slice(0, PAGE_SIZE));
+    updateLoadMoreButton('load-more-btn', currentFilteredProducts);
 }
 
 function loadMoreMarketplace() {
     marketplacePage++;
-    const category = document.getElementById('category-filter')?.value || '';
-    const locationFilter = (document.getElementById('marketplace-location-filter')?.value || '').toLowerCase().trim();
-    const minPrice = parseFloat(document.getElementById('marketplace-min-price')?.value) || 0;
-    const maxPrice = parseFloat(document.getElementById('marketplace-max-price')?.value) || Infinity;
-
-    let filtered = allProducts;
-    if (category) filtered = filtered.filter(p => p.category === category);
-    if (locationFilter) filtered = filtered.filter(p => 
-        (p.seller_location || '').toLowerCase().includes(locationFilter)
-    );
-    filtered = filtered.filter(p => p.price >= minPrice && p.price <= maxPrice);
-
     const start = (marketplacePage - 1) * PAGE_SIZE;
-    const newItems = filtered.slice(start, marketplacePage * PAGE_SIZE);
+    const end = start + PAGE_SIZE;
+    const newItems = currentFilteredProducts.slice(start, end);
     
-    renderProducts('marketplace-grid', newItems, true);
+    if (newItems.length > 0) {
+        renderProducts('marketplace-grid', newItems, true);
+    }
+    updateLoadMoreButton('load-more-btn', currentFilteredProducts);
 }
 
-// ==================== SERVICES FILTERING ====================
+// ==================== SERVICES FILTERING & LOAD MORE ====================
 function filterServices() {
     const category = document.getElementById('service-category-filter')?.value || '';
     const locationFilter = (document.getElementById('service-location-filter')?.value || '').toLowerCase().trim();
     const minPrice = parseFloat(document.getElementById('service-min-price')?.value) || 0;
     const maxPrice = parseFloat(document.getElementById('service-max-price')?.value) || Infinity;
 
-    let filtered = allServices;
-
-    if (category) filtered = filtered.filter(s => s.category === category);
-    if (locationFilter) filtered = filtered.filter(s => 
-        (s.seller_location || '').toLowerCase().includes(locationFilter)
-    );
-    filtered = filtered.filter(s => s.price >= minPrice && s.price <= maxPrice);
+    let filtered = allServices.filter(s => {
+        const matchCat = !category || s.category === category;
+        const matchLoc = !locationFilter || (s.seller_location || '').toLowerCase().includes(locationFilter);
+        const matchPrice = s.price >= minPrice && s.price <= maxPrice;
+        return matchCat && matchLoc && matchPrice;
+    });
 
     currentFilteredServices = filtered;
     servicesPage = 1;
@@ -376,7 +377,6 @@ function loadMoreServices() {
 function renderServicesPaginated() {
     const container = document.getElementById('services-grid');
     if (!container) return;
-
     if (servicesPage === 1) container.innerHTML = '';
 
     const start = (servicesPage - 1) * PAGE_SIZE;
@@ -392,8 +392,7 @@ function renderServicesPaginated() {
         card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
 
         card.innerHTML = `
-            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
-                 class="w-full h-56 object-cover bg-gray-200">
+            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-56 object-cover bg-gray-200">
             <div class="p-6">
                 <h4 class="font-semibold text-lg">${item.title}</h4>
                 ${subCategoryHTML}
@@ -401,10 +400,8 @@ function renderServicesPaginated() {
                 <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
                 <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
                 <div class="mt-6 flex gap-3">
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'phone')" 
-                            class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'whatsapp')" 
-                            class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'phone')" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'whatsapp')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
                         <i class="fa-brands fa-whatsapp"></i> WhatsApp
                     </button>
                 </div>
@@ -415,10 +412,17 @@ function renderServicesPaginated() {
         container.appendChild(card);
     });
 
-    const loadBtn = document.getElementById('load-more-services-btn');
-    if (loadBtn) {
-        loadBtn.style.display = (end < currentFilteredServices.length) ? 'block' : 'none';
-    }
+    updateLoadMoreButton('load-more-services-btn', currentFilteredServices);
+}
+
+// ==================== LOAD MORE BUTTON HELPER ====================
+function updateLoadMoreButton(btnId, filteredArray) {
+    const loadBtn = document.getElementById(btnId);
+    if (!loadBtn) return;
+    
+    const currentPage = (btnId === 'load-more-btn') ? marketplacePage : servicesPage;
+    const hasMore = (currentPage * PAGE_SIZE) < filteredArray.length;
+    loadBtn.style.display = hasMore ? 'block' : 'none';
 }
 
 // ==================== RENDER PRODUCTS ====================
@@ -429,7 +433,6 @@ function renderTrending() {
 function renderProducts(containerId, list, append = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
-
     if (!append) container.innerHTML = '';
 
     if (!list || list.length === 0) {
@@ -445,23 +448,18 @@ function renderProducts(containerId, list, append = false) {
         card.className = "product-card bg-white rounded-3xl overflow-hidden cursor-pointer shadow hover:shadow-xl transition-all";
 
         card.innerHTML = `
-            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
-                 class="w-full h-64 object-cover bg-gray-200">
+            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-64 object-cover bg-gray-200">
             <div class="p-6">
                 <h4 class="font-semibold text-lg mb-2">${product.title}</h4>
                 <div class="flex justify-between items-center mb-3">
                     <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs rounded-3xl">${product.category || 'General'}</span>
-                    <div class="flex items-center gap-1 text-amber-500 text-sm">
-                        ★ <span>${rating}</span>
-                    </div>
+                    <div class="flex items-center gap-1 text-amber-500 text-sm">★ <span>${rating}</span></div>
                 </div>
                 <p class="text-blue-700 font-bold text-2xl">K ${Number(product.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-600 mt-2">📍 ${product.seller_location || 'Malawi'}</p>
                 <div class="mt-6 flex gap-3" onclick="event.stopImmediatePropagation()">
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'phone')" 
-                            class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'whatsapp')" 
-                            class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'phone')" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'whatsapp')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
                         <i class="fa-brands fa-whatsapp"></i> WhatsApp
                     </button>
                 </div>
@@ -492,10 +490,8 @@ function showProductDetail(id) {
 
     let images = currentProduct.images || [];
     if (typeof images === 'string') {
-        try { images = JSON.parse(images); } 
-        catch (e) { images = images ? [images] : []; }
+        try { images = JSON.parse(images); } catch(e) { images = images ? [images] : []; }
     }
-
     if (!Array.isArray(images) || images.length === 0) {
         images = ["https://picsum.photos/id/1015/800/600"];
     }
@@ -592,7 +588,6 @@ function removePreviewImage(index) {
     renderPreviews();
 }
 
-// ==================== UPLOAD IMAGES ====================
 async function uploadImagesToStorage() {
     const imageUrls = [];
     for (let file of imageFiles) {
@@ -601,16 +596,10 @@ async function uploadImagesToStorage() {
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
             const filePath = `listings/${fileName}`;
 
-            const { error } = await supabaseClient.storage
-                .from('listings')
-                .upload(filePath, file, { upsert: true });
-
+            const { error } = await supabaseClient.storage.from('listings').upload(filePath, file, { upsert: true });
             if (error) continue;
 
-            const { data: { publicUrl } } = supabaseClient.storage
-                .from('listings')
-                .getPublicUrl(filePath);
-
+            const { data: { publicUrl } } = supabaseClient.storage.from('listings').getPublicUrl(filePath);
             imageUrls.push(publicUrl);
         } catch (err) {
             console.error(err);
@@ -628,7 +617,6 @@ async function submitListing() {
         hideButtonLoading(btnId);
         return showToast("Please login first", "error");
     }
-
     if (imageFiles.length === 0) {
         hideButtonLoading(btnId);
         return showToast("Please upload at least one image for your listing.", "error");
@@ -682,8 +670,6 @@ async function submitListing() {
             navigateTo('marketplace');
             loadProducts();
         }
-        
-        if (currentUser && currentUser.role === 'seller') loadMyListings();
     }
 }
 
@@ -714,7 +700,7 @@ async function performSignup() {
     if (error) {
         showToast("Signup error: " + error.message, "error");
     } else {
-        showToast(`Account created! You can now login with phone: ${phone}`, "success");
+        showToast(`Account created! Login with phone: ${phone}`, "success");
         hideSignupModal();
         showLoginModal();
     }
@@ -763,17 +749,8 @@ async function performLogin() {
 }
 
 function finishLogin() {
-    document.getElementById('dropdown-user-info').classList.remove('hidden');
-    document.getElementById('dropdown-username').textContent = currentUser.name;
-    document.getElementById('dropdown-role').textContent = currentUser.role === 'admin' ? 'Administrator' : 'Seller';
-
-    document.getElementById('logged-in-options').classList.remove('hidden');
-    document.getElementById('logged-out-options').classList.add('hidden');
-
-    if (currentUser.role === 'admin') {
-        document.getElementById('admin-link').classList.remove('hidden');
-    }
-
+    updateAuthUI(true, currentUser.name, currentUser.role);
+    updateProfileUI();
     updateProfilePictureUI();
     hideLoginModal();
     showToast("Login successful!", "success");
@@ -800,15 +777,55 @@ async function logout() {
     if (confirm("Are you sure you want to log out?")) {
         await supabaseClient.auth.signOut();
         currentUser = null;
+        updateAuthUI(false);
+        updateProfileUI();
         location.reload();
     }
+}
+
+// ==================== AUTH UI ====================
+function updateAuthUI(isLoggedIn, username = "", role = "") {
+    const userInfo = document.getElementById('sidebar-user-info');
+    const loggedInSection = document.getElementById('sidebar-logged-in');
+    const loggedOutSection = document.getElementById('sidebar-logged-out');
+    const loginBtn = document.getElementById('login-btn');
+
+    if (isLoggedIn) {
+        document.getElementById('sidebar-username').textContent = username;
+        document.getElementById('sidebar-role').textContent = role || "Member";
+        userInfo.classList.remove('hidden');
+        loggedInSection.classList.remove('hidden');
+        loggedOutSection.classList.add('hidden');
+        if (loginBtn) loginBtn.style.display = "none";
+    } else {
+        userInfo.classList.add('hidden');
+        loggedInSection.classList.add('hidden');
+        loggedOutSection.classList.remove('hidden');
+        if (loginBtn) loginBtn.style.display = "block";
+    }
+}
+
+function updateProfileUI() {
+    const loginBtn = document.getElementById('login-btn');
+    const dashboardContainer = document.getElementById('dashboard-icon-container');
+
+    if (currentUser) {
+        loginBtn.classList.add('hidden');
+        dashboardContainer.classList.remove('hidden');
+    } else {
+        loginBtn.classList.remove('hidden');
+        dashboardContainer.classList.add('hidden');
+    }
+}
+
+function toggleProfileMenu() {
+    if (currentUser) showSellerDashboard();
 }
 
 // ==================== SELLER DASHBOARD ====================
 function showSellerDashboard() {
     document.querySelectorAll('section').forEach(s => s.style.display = 'none');
     document.getElementById('seller-dashboard').style.display = 'block';
-    
     document.getElementById('seller-name').textContent = currentUser?.name || 'Seller';
     updateProfilePictureUI();
     loadMyListings();
@@ -816,17 +833,31 @@ function showSellerDashboard() {
 }
 
 async function loadSellerAnalytics() {
-    // Dynamic numbers
-    document.getElementById('seller-total').textContent = "32";
-    document.getElementById('seller-pending').textContent = "8";
-    document.getElementById('seller-approved').textContent = "19";
-    document.getElementById('seller-sold').textContent = "5";
+    if (!currentUser) return;
+    const { data } = await supabaseClient.from('listings').select('status').eq('seller_id', currentUser.id);
+    
+    if (!data) {
+        document.getElementById('seller-total').textContent = "0";
+        document.getElementById('seller-pending').textContent = "0";
+        document.getElementById('seller-approved').textContent = "0";
+        document.getElementById('seller-sold').textContent = "0";
+        return;
+    }
+
+    const total = data.length;
+    const pending = data.filter(l => l.status === 'pending').length;
+    const approved = data.filter(l => l.status === 'approved').length;
+    const sold = data.filter(l => l.status === 'sold').length;
+
+    document.getElementById('seller-total').textContent = total;
+    document.getElementById('seller-pending').textContent = pending;
+    document.getElementById('seller-approved').textContent = approved;
+    document.getElementById('seller-sold').textContent = sold;
 }
 
 async function loadMyListings() {
     if (!currentUser) return;
-
-    const { data, error } = await supabaseClient
+    const { data } = await supabaseClient
         .from('listings')
         .select('*')
         .eq('seller_id', currentUser.id)
@@ -835,15 +866,12 @@ async function loadMyListings() {
     const container = document.getElementById('my-listings-container');
     container.innerHTML = '';
 
-    if (error || !data || data.length === 0) {
+    if (!data || data.length === 0) {
         container.innerHTML = `
             <div class="text-center py-16">
                 <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i>
                 <p class="text-gray-500">You haven't posted any listings yet.</p>
-                <button onclick="showPostListingModal()" 
-                        class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">
-                    Post Your First Listing
-                </button>
+                <button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Post Your First Listing</button>
             </div>`;
         return;
     }
@@ -851,30 +879,22 @@ async function loadMyListings() {
     data.forEach(listing => {
         const div = document.createElement('div');
         div.className = "border border-gray-100 rounded-3xl p-5 sm:p-6 bg-white flex flex-col sm:flex-row gap-5 hover:shadow-md transition-all";
-        
         div.innerHTML = `
-            <img src="${getFirstImage(listing.images)}" 
-                 class="w-full sm:w-28 h-48 sm:h-28 object-cover rounded-2xl flex-shrink-0">
+            <img src="${getFirstImage(listing.images)}" class="w-full sm:w-28 h-48 sm:h-28 object-cover rounded-2xl flex-shrink-0">
             <div class="flex-1 min-w-0">
                 <h4 class="font-semibold text-lg leading-tight line-clamp-2">${listing.title}</h4>
                 <p class="text-blue-700 font-bold text-xl mt-2">K ${Number(listing.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-500 mt-1">${listing.seller_location || 'Malawi'}</p>
-                
                 <div class="mt-4 flex flex-wrap gap-2">
                     <span class="inline-block px-4 py-1 text-xs font-medium rounded-full 
-                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : 
-                          listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
                         ${listing.status.toUpperCase()}
                     </span>
                 </div>
             </div>
-            
             <div class="flex flex-col justify-between items-end gap-3 sm:gap-0">
                 ${listing.status !== 'sold' ? 
-                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" 
-                            class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl transition-all">
-                        Mark as Sold
-                    </button>` : 
+                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">Mark as Sold</button>` : 
                     `<span class="text-emerald-600 font-semibold text-sm">✓ Sold</span>`}
             </div>
         `;
@@ -882,7 +902,7 @@ async function loadMyListings() {
     });
 }
 
-// ==================== IMPROVED ADMIN DASHBOARD ====================
+// ==================== ADMIN DASHBOARD ====================
 function showAdminDashboard() {
     document.querySelectorAll('section').forEach(s => s.style.display = 'none');
     document.getElementById('admin-dashboard').style.display = 'block';
@@ -900,13 +920,11 @@ async function loadAdminStats() {
     const live = data.filter(l => l.status === 'approved').length;
     const total = data.length;
     const rejected = data.filter(l => l.status === 'rejected').length;
-    const totalValue = data.reduce((sum, item) => sum + (item.price || 0), 0);
 
     document.getElementById('admin-pending-count').textContent = pending;
     document.getElementById('admin-live-count').textContent = live;
     document.getElementById('admin-total-count').textContent = total;
     document.getElementById('admin-rejected-count').textContent = rejected;
-    document.getElementById('admin-total-value').textContent = `K ${totalValue.toLocaleString()}`;
 }
 
 async function loadPendingListings() {
@@ -942,12 +960,7 @@ async function loadPendingListings() {
 }
 
 async function loadLiveListingsForAdmin() {
-    const { data } = await supabaseClient
-        .from('listings')
-        .select('*')
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false });
-
+    const { data } = await supabaseClient.from('listings').select('*').eq('status', 'approved');
     const container = document.getElementById('admin-live-products');
     container.innerHTML = '';
 
@@ -958,17 +971,12 @@ async function loadLiveListingsForAdmin() {
     document.getElementById('admin-live-empty').classList.add('hidden');
 
     data.forEach(listing => {
-        const imageUrl = getFirstImage(listing.images);
-        const typeLabel = listing.type === 'service' ? 'Service' : 'Item';
-
         const div = document.createElement('div');
         div.className = "bg-white border rounded-3xl p-6 shadow hover:shadow-xl transition-all";
         div.innerHTML = `
-            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" 
-                 class="w-full h-48 object-cover rounded-2xl mb-4">
+            <img src="${getFirstImage(listing.images)}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-48 object-cover rounded-2xl mb-4">
             <h4 class="font-semibold text-lg">${listing.title}</h4>
             <p class="text-blue-700 font-bold text-xl">K ${Number(listing.price).toLocaleString()}</p>
-            <p class="text-sm text-gray-500 mt-1">${typeLabel} • ${listing.seller_location || 'Malawi'}</p>
         `;
         container.appendChild(div);
     });
@@ -976,7 +984,7 @@ async function loadLiveListingsForAdmin() {
 
 async function approveListing(id) {
     await supabaseClient.from('listings').update({ status: 'approved' }).eq('id', id);
-    showToast("Listing approved successfully!", "success");
+    showToast("Listing approved!", "success");
     loadPendingListings();
     loadLiveListingsForAdmin();
     loadAdminStats();
@@ -993,18 +1001,17 @@ async function rejectListing(id) {
 }
 
 async function markAsSold(id) {
-    if (confirm("Mark this listing as sold?")) {
+    if (confirm("Mark as sold?")) {
         await supabaseClient.from('listings').update({ status: 'sold' }).eq('id', id);
-        showToast("Marked as sold successfully!", "success");
+        showToast("Marked as sold!", "success");
         loadMyListings();
         loadProducts();
         loadServices();
     }
 }
 
-// ==================== OTHER FUNCTIONS (Load Products, Services, etc.) ====================
+// ==================== LOAD DATA ====================
 async function loadProducts() {
-    showProductSkeletons('trending-grid', 8);
     try {
         const { data } = await supabaseClient
             .from('listings')
@@ -1035,25 +1042,6 @@ async function loadServices() {
     }
 }
 
-function showProductSkeletons(containerId, count) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    container.innerHTML = '';
-    for (let i = 0; i < count; i++) {
-        const skeleton = document.createElement('div');
-        skeleton.className = "bg-white rounded-3xl overflow-hidden shadow animate-pulse";
-        skeleton.innerHTML = `
-            <div class="w-full h-64 bg-gray-200"></div>
-            <div class="p-6 space-y-3">
-                <div class="h-6 bg-gray-200 rounded w-3/4"></div>
-                <div class="h-8 bg-gray-200 rounded w-1/2"></div>
-                <div class="h-4 bg-gray-200 rounded w-full"></div>
-            </div>
-        `;
-        container.appendChild(skeleton);
-    }
-}
-
 function resetPostForm() {
     uploadedImages = [];
     imageFiles = [];
@@ -1068,18 +1056,21 @@ window.onload = async () => {
     await loadProducts();
     await loadServices();
 
-    // Search listeners (both desktop and mobile)
-    ['search-input', 'search-input-mobile'].forEach(id => {
+    // Hamburger Menu
+    const hamburger = document.getElementById('hamburger-btn');
+    if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+
+    // Search listeners
+    ['search-input-desktop', 'search-input-mobile'].forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.addEventListener('keypress', e => { if (e.key === 'Enter') performSearch(); });
+        if (el) {
+            el.addEventListener('keypress', e => {
+                if (e.key === 'Enter') performSearch();
+            });
+        }
     });
 
-    const serviceCategoryFilter = document.getElementById('service-category-filter');
-    if (serviceCategoryFilter) serviceCategoryFilter.addEventListener('change', filterServices);
-
-    const listingTypeSelect = document.getElementById('listing-type');
-    if (listingTypeSelect) listingTypeSelect.addEventListener('change', toggleSubServiceField);
-
+    updateProfileUI();
     navigateTo('home');
-    console.log("✅ Simpo Full Version Loaded - Profile Picture + Improved Seller Dashboard");
+    console.log("✅ Simpo Malawi");
 };
