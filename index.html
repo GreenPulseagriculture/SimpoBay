@@ -83,32 +83,34 @@
                 </button>
 
                 <!-- Logo - Now closer to hamburger -->
-                <div onclick="navigateTo('home')" 
-                     class="flex items-center gap-3 cursor-pointer">
-                    <div class="flex items-center justify-center w-10 h-10">
-                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#1e40af"/>
-                                    <stop offset="100%" stop-color="#3b82f6"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                        </svg>
-                    </div>
-                    <div>
-    <!-- SIMPO - Even smaller on mobile -->
-    <span class="text-xl md:text-3xl font-bold tracking-[-2px] text-slate-700">
-        SIMPO
-    </span>
-    
-    <!-- Tagline - Even smaller on mobile -->
-    <p class="text-[8px] md:text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
-        BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
-    </p>
+               <div onclick="navigateTo('home')" 
+     class="flex items-center gap-3 cursor-pointer">
+
+    <div class="flex items-center justify-center w-9 h-9 flex-shrink-0">
+        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1e40af"/>
+                    <stop offset="100%" stop-color="#3b82f6"/>
+                </linearGradient>
+            </defs>
+            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+        </svg>
+    </div>
+
+    <div>
+        <!-- SIMPO - Much smaller on mobile -->
+        <span class="text-lg md:text-3xl font-bold tracking-[-2px] text-slate-500">
+            SIMPO
+        </span>
+        
+        <!-- Tagline - Much smaller on mobile -->
+        <p class="text-[8px] md:text-[10px] font-semibold text-slate-600 tracking-[1px] -mt-1">
+            BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
+        </p>
+    </div>
 </div>
-                </div>
             </div>
 
             <!-- RIGHT: Desktop Search + Login/Profile -->
