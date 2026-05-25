@@ -70,135 +70,183 @@
     </style>
 </head>
 <body class="bg-gray-50">
+<!-- ==================== MAIN NAVBAR ==================== -->
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
+    <div class="max-w-7xl mx-auto px-5 sm:px-8">
+        <div class="flex items-center justify-between h-20 relative">
 
-    <!-- ==================== MAIN NAVBAR ==================== -->
-    <nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
-        <div class="max-w-7xl mx-auto px-5 sm:px-8">
-            <div class="flex justify-between items-center h-20">
-                
-                <!-- LOGO -->
-                <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
-                    <div class="flex items-center justify-center w-12 h-12">
-                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <defs>
-                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                    <stop offset="0%" stop-color="#1e40af"/>
-                                    <stop offset="100%" stop-color="#3b82f6"/>
-                                </linearGradient>
-                            </defs>
-                            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                        </svg>
-                    </div>
-                    <div>
-                        <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
-                        <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
-                            BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
-                        </p>
-                    </div>
+            <!-- LEFT: Hamburger -->
+            <button onclick="toggleSidebar()" class="p-2 lg:p-3 flex-shrink-0">
+                <i class="fa-solid fa-bars text-3xl text-slate-700"></i>
+            </button>
+
+            <!-- CENTER: Logo - Always Centered -->
+            <div onclick="navigateTo('home')" 
+                 class="flex items-center gap-3 cursor-pointer absolute left-1/2 -translate-x-1/2">
+                <div class="flex items-center justify-center w-10 h-10">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1e40af"/>
+                                <stop offset="100%" stop-color="#3b82f6"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                        <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                    </svg>
                 </div>
+                <div>
+                    <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
+                    <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
+                        BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
+                    </p>
+                </div>
+            </div>
 
-                <!-- SEARCH BAR - DESKTOP ONLY -->
-                <div class="flex-1 max-w-2xl mx-8 desktop-search">
-                    <div class="relative">
-                        <input id="search-input" type="text" placeholder="Search products or services..." 
+            <!-- RIGHT: Desktop Search + Login/Profile -->
+            <div class="flex items-center gap-4">
+                
+                <!-- DESKTOP SEARCH -->
+                <div class="hidden md:flex flex-1 max-w-xl">
+                    <div class="relative w-full">
+                        <input id="search-input-desktop" 
+                               type="text" 
+                               placeholder="Search products, services, or sellers..." 
                                onkeyup="if(event.key==='Enter') performSearch()"
-                               class="w-full pl-14 pr-6 py-3.5 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none transition-all">
-                        <i onclick="performSearch()" class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
+                               class="w-full pl-12 pr-5 py-3 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none transition-all">
+                        <i onclick="performSearch()" 
+                           class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
                     </div>
                 </div>
 
-                <!-- Right Side -->
-                <div class="flex items-center gap-6">
-                    <div id="nav-auth-buttons" class="flex items-center gap-4"></div>
+                <!-- Login Button -->
+                <button onclick="showLoginModal()" 
+                        id="login-btn"
+                        class="px-6 py-2.5 text-blue-700 font-medium hover:bg-blue-50 rounded-2xl transition-colors border border-blue-200 whitespace-nowrap">
+                    Log In
+                </button>
 
-                    <div onclick="toggleProfileDropdown()" id="profile-btn" class="profile-icon">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
+                <!-- Dashboard Icon (visible after login) -->
+                 <div id="dashboard-icon-container" onclick="toggleProfileMenu()" class="hidden cursor-pointer">
+                       <div id="dashboard-icon" class="profile-icon">
+                       <i class="fa-solid fa-chart-line text-2xl"></i>
                 </div>
-            </div>
-        </div>
-
-        <!-- Profile Dropdown -->
-        <div id="profile-dropdown" class="hidden absolute right-6 top-20 bg-white rounded-3xl shadow-2xl py-5 w-80 z-50 border border-gray-100">
-    <div id="dropdown-user-info" class="px-6 py-4 border-b hidden text-center">
-        <div class="relative w-20 h-20 mx-auto mb-3">
-            <div id="profile-avatar" onclick="document.getElementById('profile-pic-upload').click()" 
-                 class="w-20 h-20 rounded-2xl overflow-hidden border-4 border-white shadow-md cursor-pointer bg-gray-200">
-                <i class="fa-solid fa-user text-4xl text-gray-400 mt-5"></i>
-            </div>
-            <input type="file" id="profile-pic-upload" accept="image/*" class="hidden" onchange="handleProfilePicUpload(event)">
-        </div>
-        <p class="font-semibold text-gray-800" id="dropdown-username"></p>
-        <p class="text-sm text-gray-500" id="dropdown-role"></p>
-    </div>
-            <div class="py-3 text-lg">
-                <a href="#" onclick="navigateTo('home'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-house w-6 text-blue-700"></i><span>Home</span>
-                </a>
-                <a href="#" onclick="navigateTo('marketplace'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-store w-6 text-blue-700"></i><span>Marketplace</span>
-                </a>
-                <a href="#" onclick="navigateTo('services'); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-wrench w-6 text-blue-700"></i><span>Services</span>
-                </a>
-            </div>
-
-            <div id="logged-in-options" class="hidden border-t pt-3">
-                <a href="#" onclick="showSellerDashboard(); toggleProfileDropdown()" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50">
-                    <i class="fa-solid fa-chart-line w-6 text-blue-700"></i><span>Seller Dashboard</span>
-                </a>
-                <a href="#" onclick="showAdminDashboard(); toggleProfileDropdown()" id="admin-link" class="nav-link flex items-center gap-4 px-6 py-4 hover:bg-gray-50 hidden">
-                    <i class="fa-solid fa-shield-halved w-6 text-blue-700"></i><span>Admin Dashboard</span>
-                </a>
-                <button onclick="logout()" class="w-full text-left px-6 py-4 hover:bg-red-50 flex items-center gap-4 text-red-600">
-                    <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
-                </button>
-            </div>
-
-            <div id="logged-out-options" class="border-t pt-4 mt-2">
-                <button onclick="showLoginModal(); toggleProfileDropdown()" class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
-                    <i class="fa-solid fa-right-to-bracket text-blue-700"></i><span>Log In</span>
-                </button>
-                <button onclick="showSignupModal(); toggleProfileDropdown()" class="w-full text-left px-6 py-4 hover:bg-gray-50 flex items-center gap-4 text-lg">
-                    <i class="fa-solid fa-user-plus text-blue-700"></i><span>Sign Up</span>
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- ==================== SECONDARY NAV WITH MOBILE SEARCH ==================== -->
-    <div class="secondary-nav sticky top-20 z-40 bg-white border-b">
-        <div class="max-w-7xl mx-auto px-5 sm:px-8">
-            <!-- Desktop Links -->
-            <div class="hidden sm:flex items-center gap-8 text-sm font-medium text-gray-600 overflow-x-auto py-4">
-                <a href="#" onclick="navigateTo('home')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏠 Home</a>
-                <a href="#" onclick="navigateTo('marketplace')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🛒 Buy items</a>
-                <a href="#" onclick="navigateTo('services')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🧰 Services</a>
-                <a href="#" onclick="navigateTo('sell')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏷️ Post Listing</a>
-                
-            </div>
-
-            <!-- Mobile Search + Links -->
-            <div class="sm:hidden py-3">
-                <div class="relative mobile-search">
-                    <input id="search-input-mobile" type="text" placeholder="Search products or services..." 
-                           onkeyup="if(event.key==='Enter') performSearch()"
-                           class="w-full pl-12 pr-5 py-3 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none">
-                    <i onclick="performSearch()" class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
                 </div>
-            </div>
-
-            <!-- Mobile Links -->
-            <div class="flex sm:hidden items-center gap-6 text-sm font-medium text-gray-600 overflow-x-auto py-3">
-                <a href="#" onclick="navigateTo('home')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏠 Home</a>
-                <a href="#" onclick="navigateTo('marketplace')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🛒 Buy items</a>
-                <a href="#" onclick="navigateTo('services')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🧰 Services</a>
-                <a href="#" onclick="navigateTo('sell')" class="hover:text-blue-700 transition-colors whitespace-nowrap">🏷️ Post Listing</a>
             </div>
         </div>
     </div>
 
+    <!-- ==================== LEFT SLIDING SIDEBAR ==================== -->
+    <div id="sidebar-menu" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out z-[100] overflow-y-auto">
+        
+        <!-- Sidebar Header - EXACTLY SAME AS TOP BAR -->
+        <div class="p-6 border-b bg-gray-50">
+            <div onclick="navigateTo('home'); toggleSidebar()" class="flex items-center gap-3 cursor-pointer">
+                <div class="flex items-center justify-center w-10 h-10">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGradSidebar" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1e40af"/>
+                                <stop offset="100%" stop-color="#3b82f6"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGradSidebar)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                        <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGradSidebar)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
+                    <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
+                        BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <!-- User Info -->
+            <div id="sidebar-user-info" class="hidden text-center py-6 border-b">
+                <div class="w-20 h-20 mx-auto mb-3 rounded-2xl bg-gray-100 flex items-center justify-center">
+                    <i class="fa-solid fa-user text-5xl text-gray-400"></i>
+                </div>
+                <p id="sidebar-username" class="font-semibold text-xl"></p>
+                <p id="sidebar-role" class="text-sm text-gray-500"></p>
+            </div>
+
+            <!-- Menu Content -->
+            <div class="mt-6 space-y-2 text-[17px] font-medium">
+
+                <!-- Logged Out: Login & Signup at the TOP -->
+                <div id="sidebar-logged-out">
+                    <button onclick="showLoginModal(); toggleSidebar()" 
+                            class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl text-left">
+                        <i class="fa-solid fa-right-to-bracket text-blue-700"></i> 
+                        <span>Log In</span>
+                    </button>
+                    <button onclick="showSignupModal(); toggleSidebar()" 
+                            class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl text-left">
+                        <i class="fa-solid fa-user-plus text-blue-700"></i> 
+                        <span>Sign Up</span>
+                    </button>
+                    <div class="h-px bg-gray-200 my-6"></div>
+                </div>
+
+                <!-- Main Navigation -->
+                <a href="#" onclick="navigateTo('home'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-house w-5 text-blue-600"></i> Home
+                </a>
+                <a href="#" onclick="navigateTo('marketplace'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-store w-5 text-blue-600"></i> Marketplace
+                </a>
+                <a href="#" onclick="navigateTo('services'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-wrench w-5 text-blue-600"></i> Services
+                </a>
+                <a href="#" onclick="navigateTo('sell'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-tag w-5 text-blue-600"></i> Post Listing
+                </a>
+
+                <div class="h-px bg-gray-200 my-6"></div>
+
+                <!-- Extra Links -->
+                <a href="#" onclick="navigateTo('about'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-info-circle w-5"></i> About Us
+                </a>
+                <a href="#" onclick="navigateTo('help'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                    <i class="fa-solid fa-circle-question w-5"></i> Help Center
+                </a>
+
+                <!-- Logged In Options -->
+                <div id="sidebar-logged-in" class="hidden border-t pt-6 mt-6">
+                    <a href="#" onclick="showSellerDashboard(); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                        <i class="fa-solid fa-chart-line w-5"></i> Seller Dashboard
+                    </a>
+                    <a href="#" onclick="showAdminDashboard(); toggleSidebar()" id="sidebar-admin-link" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors hidden">
+                        <i class="fa-solid fa-shield-halved w-5"></i> Admin Dashboard
+                    </a>
+                    <button onclick="logout(); toggleSidebar()" 
+                            class="w-full text-left flex items-center gap-4 px-5 py-4 hover:bg-red-50 text-red-600 rounded-2xl mt-4">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-[99]"></div>
+</nav>
+
+<!-- Mobile Search -->
+<div class="secondary-nav sticky top-20 z-40 bg-white border-b md:hidden">
+    <div class="max-w-7xl mx-auto px-5 py-4">
+        <div class="relative">
+            <input id="search-input-mobile" type="text" placeholder="Search products or services..." 
+                   onkeyup="if(event.key==='Enter') performSearch()"
+                   class="w-full pl-12 pr-5 py-3.5 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none">
+            <i onclick="performSearch()" class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
+        </div>
+    </div>
+</div>
     <!-- ==================== HOME SECTION ==================== -->
     <section id="home-section">
         <!-- Your existing home content remains unchanged -->
@@ -226,7 +274,7 @@
                     </div>
                     <div onclick="showPostListingModal()" class="action-card bg-amber-50 p-7 rounded-3xl text-center cursor-pointer">
                         <i class="fa-solid fa-tag text-5xl text-amber-600 mb-4"></i>
-                        <p class="font-semibold text-lg">Sell Something</p>
+                        <p class="font-semibold text-lg">Post Listing </p>
                     </div>
                     <div onclick="navigateTo('marketplace')" class="action-card bg-blue-50 p-7 rounded-3xl text-center cursor-pointer">
                         <i class="fa-solid fa-cart-shopping text-5xl text-blue-600 mb-4"></i>
@@ -271,7 +319,7 @@
                     <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
                         <span class="text-5xl block mb-4">🔌</span>
                         <h3 class="font-semibold text-lg">Electricians</h3>
-                        <p class="text-sm text-gray-500 mt-1">Available today in Lilongwe</p>
+                        <p class="text-sm text-gray-500 mt-1">Available today across Malawi </p>
                     </div>
                     <div onclick="navigateTo('services')" class="service-card bg-gray-50 p-6 rounded-3xl cursor-pointer hover:shadow-md transition-all">
                         <span class="text-5xl block mb-4">🔧</span>
@@ -504,6 +552,7 @@
                 <span id="listings-count" class="text-sm text-gray-500"></span>
             </div>
             <div id="my-listings-container" class="space-y-6">
+
             </div>
         </div>
     </div>
