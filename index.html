@@ -75,31 +75,34 @@
     <div class="max-w-7xl mx-auto px-5 sm:px-8">
         <div class="flex items-center justify-between h-20 relative">
 
-            <!-- LEFT: Hamburger -->
-            <button onclick="toggleSidebar()" class="p-2 lg:p-3 flex-shrink-0">
-                <i class="fa-solid fa-bars text-3xl text-slate-700"></i>
-            </button>
+            <!-- LEFT: Hamburger + Logo (Closer together) -->
+            <div class="flex items-center gap-4 lg:gap-6">
+                <!-- Hamburger -->
+                <button onclick="toggleSidebar()" class="p-2 lg:p-3 flex-shrink-0">
+                    <i class="fa-solid fa-bars text-3xl text-slate-700"></i>
+                </button>
 
-            <!-- CENTER: Logo - Always Centered -->
-            <div onclick="navigateTo('home')" 
-                 class="flex items-center gap-3 cursor-pointer absolute left-1/2 -translate-x-1/2">
-                <div class="flex items-center justify-center w-10 h-10">
-                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                                <stop offset="0%" stop-color="#1e40af"/>
-                                <stop offset="100%" stop-color="#3b82f6"/>
-                            </linearGradient>
-                        </defs>
-                        <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                        <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-                    </svg>
-                </div>
-                <div>
-                    <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
-                    <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
-                        BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
-                    </p>
+                <!-- Logo - Now closer to hamburger -->
+                <div onclick="navigateTo('home')" 
+                     class="flex items-center gap-3 cursor-pointer">
+                    <div class="flex items-center justify-center w-10 h-10">
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#1e40af"/>
+                                    <stop offset="100%" stop-color="#3b82f6"/>
+                                </linearGradient>
+                            </defs>
+                            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
+                        <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
+                            BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -126,16 +129,16 @@
                     Log In
                 </button>
 
-                <!-- Dashboard Icon (visible after login) -->
-                 <div id="dashboard-icon-container" onclick="toggleProfileMenu()" class="hidden cursor-pointer">
-                       <div id="dashboard-icon" class="profile-icon">
-                       <i class="fa-solid fa-chart-line text-2xl"></i>
-                </div>
+                <!-- Dashboard Icon -->
+                <div id="dashboard-icon-container" onclick="toggleProfileMenu()" class="hidden cursor-pointer">
+                    <div id="dashboard-icon" class="profile-icon">
+                        <i class="fa-solid fa-chart-line text-2xl"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
+</nav>
     <!-- ==================== LEFT SLIDING SIDEBAR ==================== -->
     <div id="sidebar-menu" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out z-[100] overflow-y-auto">
         
