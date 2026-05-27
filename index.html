@@ -75,10 +75,12 @@
     <div class="max-w-7xl mx-auto px-5 sm:px-8">
         <div class="flex items-center justify-between h-20">
 
-            <!-- LEFT: LOGO -->
-            <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
-                <div class="flex items-center justify-center w-11 h-11">
-                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- LEFT: LOGO (Smaller on Mobile) -->
+            <div onclick="navigateTo('home')" class="flex items-center gap-2 sm:gap-3 cursor-pointer">
+                <!-- Smaller logo icon on mobile -->
+                <div class="flex items-center justify-center w-9 h-9 sm:w-11 sm:h-11">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" 
+                         class="w-9 h-9 sm:w-11 sm:h-11">
                         <defs>
                             <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#1e40af"/>
@@ -89,9 +91,11 @@
                         <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
                     </svg>
                 </div>
-                <div>
-                    <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
-                    <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
+                
+                <!-- Text part - Smaller on mobile -->
+                <div class="flex flex-col">
+                    <span class="text-2xl sm:text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
+                    <p class="text-[9px] sm:text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
                         BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
                     </p>
                 </div>
@@ -108,15 +112,8 @@
             </div>
 
             <!-- RIGHT SIDE -->
-            <div class="flex items-center gap-4">
-                <!-- Small Login Button -->
-                <button onclick="showLoginModal()" 
-                        id="login-btn"
-                        class="px-5 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 border border-blue-200 rounded-2xl transition-all whitespace-nowrap">
-                    Log In
-                </button>
-
-                <!-- Hamburger Menu (Visible on All Devices) -->
+            <div class="flex items-center">
+                <!-- Hamburger Menu -->
                 <button onclick="toggleSidebar()" 
                         class="w-11 h-11 flex items-center justify-center text-3xl text-slate-700 hover:bg-gray-100 rounded-2xl">
                     <i class="fa-solid fa-bars"></i>
@@ -126,31 +123,26 @@
     </div>
 </nav>
 
-<!-- ==================== MOBILE BOTTOM BAR (Dashboard visible only when logged in) ==================== -->
+<!-- ==================== MOBILE BOTTOM BAR ==================== -->
 <div id="mobile-bottom-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
     <div class="flex items-center justify-around py-2 px-4">
-        
         <a href="#" onclick="navigateTo('home')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
             <i class="fa-solid fa-house text-2xl"></i>
             <span>Home</span>
         </a>
-        
         <a href="#" onclick="navigateTo('marketplace')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
             <i class="fa-solid fa-store text-2xl"></i>
             <span>Buy</span>
         </a>
-        
         <a href="#" onclick="navigateTo('services')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
             <i class="fa-solid fa-wrench text-2xl"></i>
             <span>Services</span>
         </a>
-        
         <a href="#" onclick="navigateTo('sell')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
             <i class="fa-solid fa-tag text-2xl"></i>
             <span>Sell</span>
         </a>
 
-        <!-- Dashboard (Only visible when logged in) -->
         <a href="#" onclick="showSellerDashboard()" id="bottom-dashboard-btn" 
            class="hidden flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
             <i class="fa-solid fa-chart-line text-2xl"></i>
@@ -285,30 +277,7 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="py-12 bg-white">
-            <div class="max-w-7xl mx-auto px-5">
-                <h2 class="text-2xl font-semibold text-center mb-8 text-gray-800">Quick Actions</h2>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-                    <div onclick="navigateTo('services')" class="action-card bg-blue-50 p-7 rounded-3xl text-center cursor-pointer">
-                        <i class="fa-solid fa-wrench text-5xl text-blue-600 mb-4"></i>
-                        <p class="font-semibold text-lg">Find a Service</p>
-                    </div>
-                    <div onclick="showPostListingModal()" class="action-card bg-amber-50 p-7 rounded-3xl text-center cursor-pointer">
-                        <i class="fa-solid fa-tag text-5xl text-amber-600 mb-4"></i>
-                        <p class="font-semibold text-lg">Post Listing </p>
-                    </div>
-                    <div onclick="navigateTo('marketplace')" class="action-card bg-blue-50 p-7 rounded-3xl text-center cursor-pointer">
-                        <i class="fa-solid fa-cart-shopping text-5xl text-blue-600 mb-4"></i>
-                        <p class="font-semibold text-lg">Buy Items</p>
-                    </div>
-                    <div onclick="navigateTo('help')" class="action-card bg-red-50 p-7 rounded-3xl text-center cursor-pointer">
-                        <i class="fa-solid fa-bell text-5xl text-red-600 mb-4"></i>
-                        <p class="font-semibold text-lg">Request Help</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
 
         <!-- Need Help Today -->
         <div class="py-14 bg-gradient-to-r from-red-600 to-rose-600 text-white">
@@ -387,19 +356,64 @@
         </div>
 
 
-        <!-- Post Something Section -->
-        <div class="py-20 bg-blue-700 text-white">
-            <div class="max-w-4xl mx-auto px-5 text-center">
-                <h2 class="text-4xl font-bold mb-4">Got something to offer?</h2>
-                <p class="text-blue-100 text-xl mb-12">Your skills and products can support your community today</p>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                    <button onclick="showPostListingModal()" class="bg-white text-blue-700 py-7 rounded-3xl font-semibold text-lg hover:bg-blue-50">Post a Service</button>
-                    <button onclick="showPostListingModal()" class="bg-white text-blue-700 py-7 rounded-3xl font-semibold text-lg hover:bg-blue-50">Sell an Item</button>
-                    <button onclick="navigateTo('help')" class="bg-white text-blue-700 py-7 rounded-3xl font-semibold text-lg hover:bg-blue-50">Request Help</button>
+        <!-- ====================== POST SOMETHING / CTA SECTION ====================== -->
+<section class="py-24 bg-gradient-to-br from-blue-700 via-blue-600 to-indigo-700 text-white relative overflow-hidden">
+    <div class="max-w-5xl mx-auto px-5 text-center">
+        
+        <!-- Heading -->
+        <h2 class="text-5xl sm:text-6xl font-bold tracking-tight mb-6">
+            Turn your skills and items<br>into opportunity
+        </h2>
+        
+        <p class="text-xl text-blue-100 max-w-2xl mx-auto mb-16">
+            Join thousands of people in your community who are earning by offering services, selling products, and helping others.
+        </p>
+
+        <!-- Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            
+            <!-- Card 1: Sell an Item -->
+            <div onclick="showPostListingModal()" 
+                 class="group bg-white/10 backdrop-blur-lg border border-white/20 hover:border-white/40 rounded-3xl p-8 text-left transition-all hover:scale-105 hover:shadow-2xl cursor-pointer">
+                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-3xl">
+                    🛍️
                 </div>
+                <h3 class="text-2xl font-semibold mb-3">Sell an Item</h3>
+                <p class="text-blue-100">Post products you no longer need and reach local buyers quickly.</p>
+                <span class="inline-block mt-8 text-sm font-medium text-white group-hover:underline">Post Now →</span>
             </div>
+
+            <!-- Card 2: Offer a Service -->
+            <div onclick="showPostListingModal()" 
+                 class="group bg-white/10 backdrop-blur-lg border border-white/20 hover:border-white/40 rounded-3xl p-8 text-left transition-all hover:scale-105 hover:shadow-2xl cursor-pointer">
+                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-3xl">
+                    🔧
+                </div>
+                <h3 class="text-2xl font-semibold mb-3">Offer a Service</h3>
+                <p class="text-blue-100">Share your skills — from repairs to tutoring, photography to consulting.</p>
+                <span class="inline-block mt-8 text-sm font-medium text-white group-hover:underline">Start Offering Services →</span>
+            </div>
+
+            <!-- Card 3: Request Help -->
+            <div onclick="navigateTo('help')" 
+                 class="group bg-white/10 backdrop-blur-lg border border-white/20 hover:border-white/40 rounded-3xl p-8 text-left transition-all hover:scale-105 hover:shadow-2xl cursor-pointer">
+                <div class="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center mb-6 text-3xl">
+                    🤝
+                </div>
+                <h3 class="text-2xl font-semibold mb-3">Request Help</h3>
+                <p class="text-blue-100">Need something done? Post your request and get offers from locals.</p>
+                <span class="inline-block mt-8 text-sm font-medium text-white group-hover:underline">Post a Request →</span>
+            </div>
+
         </div>
-    </section>
+
+        <!-- Trust line -->
+        <p class="text-blue-200 text-sm mt-16 flex items-center justify-center gap-2">
+            <span class="inline-block w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+            Trusted by over 12,000+ people in your community
+        </p>
+    </div>
+</section>
 
    <!-- ==================== FIXED SERVICES SECTION ==================== -->
     <section id="services-section" class="py-16 bg-white hidden">
