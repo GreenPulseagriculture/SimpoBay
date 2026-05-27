@@ -73,79 +73,91 @@
 <!-- ==================== MAIN NAVBAR ==================== -->
 <nav class="bg-white border-b border-gray-100 sticky top-0 z-50 shadow-sm">
     <div class="max-w-7xl mx-auto px-5 sm:px-8">
-        <div class="flex items-center justify-between h-20 relative">
+        <div class="flex items-center justify-between h-20">
 
-            <!-- LEFT: Hamburger + Logo (Closer together) -->
-            <div class="flex items-center gap-4 lg:gap-6">
-                <!-- Hamburger -->
-                <button onclick="toggleSidebar()" class="p-2 lg:p-3 flex-shrink-0">
-                    <i class="fa-solid fa-bars text-3xl text-slate-700"></i>
-                </button>
-
-                <!-- Logo - Now closer to hamburger -->
-               <div onclick="navigateTo('home')" 
-     class="flex items-center gap-3 cursor-pointer">
-
-    <div class="flex items-center justify-center w-8 h-8 flex-shrink-0">
-        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#1e40af"/>
-                    <stop offset="100%" stop-color="#3b82f6"/>
-                </linearGradient>
-            </defs>
-            <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-            <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
-        </svg>
-    </div>
-
-    <div>
-        <!-- SIMPO - Further smaller on mobile -->
-        <span class="text-base md:text-3xl font-bold tracking-[-2px] text-slate-900">
-            SIMPO
-        </span>
-        
-        <!-- Tagline - Further smaller on mobile -->
-        <p class="text-[7.5px] md:text-[10px] font-semibold text-slate-600 tracking-[1px] -mt-1">
-            BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
-        </p>
-    </div>
-</div>
+            <!-- LEFT: LOGO -->
+            <div onclick="navigateTo('home')" class="flex items-center gap-3 cursor-pointer">
+                <div class="flex items-center justify-center w-11 h-11">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stop-color="#1e40af"/>
+                                <stop offset="100%" stop-color="#3b82f6"/>
+                            </linearGradient>
+                        </defs>
+                        <path d="M15 29 Q21 18 27 23 Q33 28 36 19" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                        <path d="M13 19 Q20 30 26 25 Q33 20 37 29" stroke="url(#logoGrad)" stroke-width="5.5" stroke-linecap="round" fill="none"/>
+                    </svg>
+                </div>
+                <div>
+                    <span class="text-3xl font-bold tracking-[-2px] text-slate-900">SIMPO</span>
+                    <p class="text-[10px] font-semibold text-slate-600 tracking-[1.5px] -mt-1">
+                        BUY <span class="text-blue-600">•</span> SELL <span class="text-blue-600">•</span> SERVICES
+                    </p>
+                </div>
             </div>
 
-            <!-- RIGHT: Desktop Search + Login/Profile -->
-            <div class="flex items-center gap-4">
-                
-                <!-- DESKTOP SEARCH -->
-                <div class="hidden md:flex flex-1 max-w-xl">
-                    <div class="relative w-full">
-                        <input id="search-input-desktop" 
-                               type="text" 
-                               placeholder="Search products, services, or sellers..." 
-                               onkeyup="if(event.key==='Enter') performSearch()"
-                               class="w-full pl-12 pr-5 py-3 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none transition-all">
-                        <i onclick="performSearch()" 
-                           class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
-                    </div>
+            <!-- CENTER: DESKTOP SEARCH -->
+            <div class="hidden md:flex flex-1 max-w-2xl mx-8">
+                <div class="relative w-full">
+                    <input id="search-input-desktop" type="text" placeholder="Search products or services..." 
+                           onkeyup="if(event.key==='Enter') performSearch()"
+                           class="w-full pl-14 pr-6 py-3.5 bg-gray-100 border border-transparent focus:border-blue-600 focus:bg-white rounded-3xl text-base focus:outline-none transition-all">
+                    <i onclick="performSearch()" class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 text-xl cursor-pointer"></i>
                 </div>
+            </div>
 
-                <!-- Login Button -->
+            <!-- RIGHT SIDE -->
+            <div class="flex items-center gap-4">
+                <!-- Small Login Button -->
                 <button onclick="showLoginModal()" 
                         id="login-btn"
-                        class="px-6 py-2.5 text-blue-700 font-medium hover:bg-blue-50 rounded-2xl transition-colors border border-blue-200 whitespace-nowrap">
+                        class="px-5 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 border border-blue-200 rounded-2xl transition-all whitespace-nowrap">
                     Log In
                 </button>
 
-                <!-- Dashboard Icon -->
-                <div id="dashboard-icon-container" onclick="toggleProfileMenu()" class="hidden cursor-pointer">
-                    <div id="dashboard-icon" class="profile-icon">
-                        <i class="fa-solid fa-chart-line text-2xl"></i>
-                    </div>
-                </div>
+                <!-- Hamburger Menu (Visible on All Devices) -->
+                <button onclick="toggleSidebar()" 
+                        class="w-11 h-11 flex items-center justify-center text-3xl text-slate-700 hover:bg-gray-100 rounded-2xl">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
             </div>
         </div>
     </div>
 </nav>
+
+<!-- ==================== MOBILE BOTTOM BAR (Dashboard visible only when logged in) ==================== -->
+<div id="mobile-bottom-bar" class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
+    <div class="flex items-center justify-around py-2 px-4">
+        
+        <a href="#" onclick="navigateTo('home')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
+            <i class="fa-solid fa-house text-2xl"></i>
+            <span>Home</span>
+        </a>
+        
+        <a href="#" onclick="navigateTo('marketplace')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
+            <i class="fa-solid fa-store text-2xl"></i>
+            <span>Buy</span>
+        </a>
+        
+        <a href="#" onclick="navigateTo('services')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
+            <i class="fa-solid fa-wrench text-2xl"></i>
+            <span>Services</span>
+        </a>
+        
+        <a href="#" onclick="navigateTo('sell')" class="flex flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
+            <i class="fa-solid fa-tag text-2xl"></i>
+            <span>Sell</span>
+        </a>
+
+        <!-- Dashboard (Only visible when logged in) -->
+        <a href="#" onclick="showSellerDashboard()" id="bottom-dashboard-btn" 
+           class="hidden flex-col items-center text-xs text-gray-600 hover:text-blue-600 py-1">
+            <i class="fa-solid fa-chart-line text-2xl"></i>
+            <span>Dashboard</span>
+        </a>
+    </div>
+</div>
     <!-- ==================== LEFT SLIDING SIDEBAR ==================== -->
     <div id="sidebar-menu" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out z-[100] overflow-y-auto">
         
