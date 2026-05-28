@@ -8,7 +8,8 @@ let currentFilteredProducts = [];
 
 let uploadedImages = [];
 let imageFiles = [];
-let currentProduct = null;
+let existingImages = [];
+let currentEditingId = null;
 
 let marketplacePage = 1;
 let servicesPage = 1;
@@ -58,7 +59,7 @@ async function initSupabase() {
     });
 }
 
-// ==================== SIDEBAR / HAMBURGER MENU ====================
+// ==================== SIDEBAR ====================
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar-menu');
     const overlay = document.getElementById('sidebar-overlay');
@@ -76,59 +77,9 @@ function toggleSidebar() {
     }
 }
 
-// ==================== PROFILE PICTURE UPLOAD ====================
-async function handleProfilePicUpload(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!file.type.startsWith('image/')) {
-        return showToast("Please upload a valid image file", "error");
-    }
-    await uploadProfilePicture(file);
-}
-
-async function uploadProfilePicture(file) {
-    if (!currentUser) return showToast("Please login first", "error");
-
-    try {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `profile-${currentUser.id}-${Date.now()}.${fileExt}`;
-        const filePath = `profiles/${fileName}`;
-
-        const { error: uploadError } = await supabaseClient.storage
-            .from('listings')
-            .upload(filePath, file, { upsert: true });
-
-        if (uploadError) throw uploadError;
-
-        const { data: urlData } = supabaseClient.storage
-            .from('listings')
-            .getPublicUrl(filePath);
-
-        await supabaseClient.auth.updateUser({ 
-            data: { avatar_url: urlData.publicUrl } 
-        });
-
-        currentUser.avatar_url = urlData.publicUrl;
-        updateProfilePictureUI();
-        showToast("Profile picture updated successfully!", "success");
-    } catch (err) {
-        console.error(err);
-        showToast("Failed to upload profile picture", "error");
-    }
-}
-
-function updateProfilePictureUI() {
-    const avatarLarge = document.getElementById('seller-avatar-large');
-    const avatarTop = document.getElementById('profile-avatar');
-
-    if (currentUser?.avatar_url) {
-        if (avatarLarge) avatarLarge.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover rounded-3xl">`;
-        if (avatarTop) avatarTop.innerHTML = `<img src="${currentUser.avatar_url}" class="w-full h-full object-cover">`;
-    }
-}
-
 // ==================== MODAL FUNCTIONS ====================
 function showLoginModal() {
+    toggleSidebar();
     const modal = document.getElementById('login-modal');
     if (modal) modal.classList.remove('hidden').classList.add('flex');
 }
@@ -142,6 +93,7 @@ function hideLoginModal() {
 }
 
 function showSignupModal() {
+    toggleSidebar();
     const modal = document.getElementById('signup-modal');
     if (modal) modal.classList.remove('hidden').classList.add('flex');
 }
@@ -154,12 +106,43 @@ function hideSignupModal() {
     }
 }
 
-function showPostListingModal() {
+function showPostListingModal(editListing = null) {
     const modal = document.getElementById('post-listing-modal');
-    if (modal) {
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-        resetPostForm();
+    if (!modal) return;
+
+    currentEditingId = editListing ? editListing.id : null;
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    resetPostForm();
+
+    if (editListing) {
+        document.getElementById('modal-title').textContent = 'Edit Listing';
+        document.getElementById('submit-listing-btn').textContent = 'Update Listing';
+
+        document.getElementById('listing-type').value = editListing.type || 'item';
+        document.getElementById('listing-category').value = editListing.category || 'General';
+        document.getElementById('listing-title').value = editListing.title || '';
+        document.getElementById('listing-price').value = editListing.price || '';
+        document.getElementById('listing-desc').value = editListing.description || '';
+        document.getElementById('seller-location').value = editListing.seller_location || 'Malawi';
+        document.getElementById('seller-phone').value = editListing.seller_phone || '';
+        document.getElementById('seller-whatsapp').value = editListing.seller_whatsapp || '';
+
+        let imgs = editListing.images || [];
+        if (typeof imgs === 'string') {
+            try { imgs = JSON.parse(imgs); } catch(e) { imgs = imgs ? [imgs] : []; }
+        }
+        existingImages = Array.isArray(imgs) ? [...imgs] : [];
+
+        toggleSubServiceField();
+        if (editListing.type === 'service') {
+            document.getElementById('sub-service').value = editListing.sub_category || '';
+        }
+        renderPreviews();
+    } else {
+        document.getElementById('modal-title').textContent = 'Post New Listing';
+        document.getElementById('submit-listing-btn').textContent = 'Submit Listing';
         toggleSubServiceField();
     }
 }
@@ -170,6 +153,7 @@ function hidePostListingModal() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
+    currentEditingId = null;
 }
 
 // ==================== HELPERS ====================
@@ -195,14 +179,13 @@ function getFirstImage(images) {
     if (typeof images === 'string') {
         try {
             const parsed = JSON.parse(images);
-            if (Array.isArray(parsed) && parsed.length > 0) return parsed[0];
-            return images;
+            return Array.isArray(parsed) && parsed.length > 0 ? parsed[0] : images;
         } catch (e) { return images; }
     }
     return 'https://picsum.photos/id/1015/400/300';
 }
 
-// ==================== DYNAMIC SUB SERVICES ====================
+// ==================== SUB SERVICES ====================
 const subServicesList = {
     "Cleaning": ["Home Cleaning", "Office Cleaning", "Car Wash"],
     "Repair": ["Plumbing", "Electrical", "Carpentry", "Appliance Repair"],
@@ -215,25 +198,25 @@ const subServicesList = {
 
 function toggleSubServiceField() {
     const listingType = document.getElementById('listing-type').value;
-    const subServiceContainer = document.getElementById('sub-service-container');
-    const subServiceSelect = document.getElementById('sub-service');
+    const container = document.getElementById('sub-service-container');
+    const select = document.getElementById('sub-service');
 
     if (listingType === 'service') {
-        subServiceContainer.classList.remove('hidden');
-        subServiceSelect.innerHTML = '<option value="">Select Sub Service</option>';
-        Object.keys(subServicesList).forEach(mainCat => {
-            const optgroup = document.createElement('optgroup');
-            optgroup.label = mainCat;
-            subServicesList[mainCat].forEach(sub => {
-                const option = document.createElement('option');
-                option.value = sub;
-                option.textContent = sub;
-                optgroup.appendChild(option);
+        container.classList.remove('hidden');
+        select.innerHTML = '<option value="">Select Sub Service</option>';
+        Object.keys(subServicesList).forEach(cat => {
+            const group = document.createElement('optgroup');
+            group.label = cat;
+            subServicesList[cat].forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                group.appendChild(opt);
             });
-            subServiceSelect.appendChild(optgroup);
+            select.appendChild(group);
         });
     } else {
-        subServiceContainer.classList.add('hidden');
+        container.classList.add('hidden');
     }
 }
 
@@ -244,6 +227,7 @@ function navigateTo(page) {
     if (page === 'home') {
         document.getElementById('home-section').style.display = 'block';
         renderTrending();
+        renderHomeServices();
     } 
     else if (page === 'services') {
         document.getElementById('services-section').style.display = 'block';
@@ -264,8 +248,407 @@ function navigateTo(page) {
 }
 
 function openWhatsAppForRequest() {
-    const message = encodeURIComponent("Hello, I need urgent help on how to sell my product or post a service.");
+    const message = encodeURIComponent("Hello, I need urgent help on Simpo Malawi.");
     window.open(`https://wa.me/265883944589?text=${message}`, '_blank');
+}
+
+// ==================== AUTH UI ====================
+function updateAuthUI(isLoggedIn, username = "", role = "") {
+    const userInfo = document.getElementById('sidebar-user-info');
+    const loggedInSection = document.getElementById('sidebar-logged-in');
+    const loggedOutSection = document.getElementById('sidebar-logged-out');
+    const loginBtn = document.getElementById('login-btn');
+
+    if (isLoggedIn) {
+        document.getElementById('sidebar-username').textContent = username;
+        document.getElementById('sidebar-role').textContent = role || "Member";
+        if (userInfo) userInfo.classList.remove('hidden');
+        if (loggedInSection) loggedInSection.classList.remove('hidden');
+        if (loggedOutSection) loggedOutSection.classList.add('hidden');
+        if (loginBtn) loginBtn.style.display = "none";
+    } else {
+        if (userInfo) userInfo.classList.add('hidden');
+        if (loggedInSection) loggedInSection.classList.add('hidden');
+        if (loggedOutSection) loggedOutSection.classList.remove('hidden');
+        if (loginBtn) loginBtn.style.display = "block";
+    }
+}
+
+function updateProfileUI() {
+    const loginBtn = document.getElementById('login-btn');
+    const dashboardContainer = document.getElementById('dashboard-icon-container');
+
+    if (currentUser) {
+        if (loginBtn) loginBtn.classList.add('hidden');
+        if (dashboardContainer) dashboardContainer.classList.remove('hidden');
+    } else {
+        if (loginBtn) loginBtn.classList.remove('hidden');
+        if (dashboardContainer) dashboardContainer.classList.add('hidden');
+    }
+}
+
+// ==================== HOME SERVICES ====================
+function renderHomeServices() {
+    const container = document.getElementById('home-services-grid');
+    if (!container) return;
+    container.innerHTML = '';
+
+    allServices.slice(0, 8).forEach(item => {
+        const imageUrl = getFirstImage(item.images);
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
+
+        card.innerHTML = `
+            <img src="${imageUrl}" 
+                 onerror="this.src='https://picsum.photos/id/1015/400/300'" 
+                 class="w-full h-48 object-cover bg-gray-200">
+            <div class="p-6">
+                <h4 class="font-semibold text-lg">${item.title}</h4>
+                <p class="text-blue-600 font-bold text-xl mt-2">K ${Number(item.price).toLocaleString()}</p>
+                <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
+            </div>
+        `;
+        card.onclick = () => showProductDetail(item.id);
+        container.appendChild(card);
+    });
+}
+
+// ==================== IMAGE HANDLING ====================
+function handleImageUpload(e) {
+    const files = Array.from(e.target.files);
+    if (uploadedImages.length + existingImages.length + files.length > 6) {
+        return showToast("Maximum 6 images allowed!", "warning");
+    }
+
+    files.forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        imageFiles.push(file);
+        const reader = new FileReader();
+        reader.onload = ev => {
+            uploadedImages.push(ev.target.result);
+            renderPreviews();
+        };
+        reader.readAsDataURL(file);
+    });
+    e.target.value = '';
+}
+
+function renderPreviews() {
+    const container = document.getElementById('preview-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    existingImages.forEach((src, i) => {
+        const div = document.createElement('div');
+        div.className = "aspect-square rounded-2xl overflow-hidden border relative";
+        div.innerHTML = `
+            <img src="${src}" class="w-full h-full object-cover">
+            <button onclick="removeExistingImage(${i}); event.stopImmediatePropagation()" 
+                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
+        `;
+        container.appendChild(div);
+    });
+
+    uploadedImages.forEach((src, i) => {
+        const div = document.createElement('div');
+        div.className = "aspect-square rounded-2xl overflow-hidden border relative";
+        div.innerHTML = `
+            <img src="${src}" class="w-full h-full object-cover">
+            <button onclick="removePreviewImage(${i}); event.stopImmediatePropagation()" 
+                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function removeExistingImage(index) {
+    existingImages.splice(index, 1);
+    renderPreviews();
+}
+
+function removePreviewImage(index) {
+    uploadedImages.splice(index, 1);
+    imageFiles.splice(index, 1);
+    renderPreviews();
+}
+
+async function uploadImagesToStorage() {
+    const imageUrls = [];
+    for (let file of imageFiles) {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+            const filePath = `listings/${fileName}`;
+
+            const { error } = await supabaseClient.storage.from('listings').upload(filePath, file, { upsert: true });
+            if (error) continue;
+
+            const { data: { publicUrl } } = supabaseClient.storage.from('listings').getPublicUrl(filePath);
+            imageUrls.push(publicUrl);
+        } catch (err) {
+            console.error(err);
+        }
+    }
+    return imageUrls;
+}
+
+// ==================== SUBMIT / UPDATE LISTING ====================
+async function submitListing() {
+    const btnId = 'submit-listing-btn';
+    showButtonLoading(btnId, currentEditingId ? 'Updating...' : 'Submitting...');
+
+    if (!currentUser) {
+        hideButtonLoading(btnId);
+        return showToast("Please login first", "error");
+    }
+
+    if (existingImages.length + uploadedImages.length === 0) {
+        hideButtonLoading(btnId);
+        return showToast("Please upload at least one image", "error");
+    }
+
+    const listingType = document.getElementById('listing-type').value || 'item';
+    const mainCategory = document.getElementById('listing-category').value || 'General';
+    const subService = document.getElementById('sub-service').value || '';
+
+    const finalTitle = document.getElementById('listing-title').value.trim();
+    const price = parseFloat(document.getElementById('listing-price').value);
+
+    if (!finalTitle || isNaN(price) || price <= 0) {
+        hideButtonLoading(btnId);
+        return showToast("Title and valid price are required", "error");
+    }
+
+    const newImageUrls = await uploadImagesToStorage();
+    const finalImages = [...existingImages, ...newImageUrls];
+
+    const payload = {
+        title: finalTitle,
+        price: price,
+        category: mainCategory,
+        sub_category: subService,
+        type: listingType,
+        description: document.getElementById('listing-desc').value.trim() || '',
+        seller_location: document.getElementById('seller-location').value.trim() || "Malawi",
+        seller_phone: document.getElementById('seller-phone').value.trim() || '',
+        seller_whatsapp: document.getElementById('seller-whatsapp').value.trim() || '',
+        images: finalImages,
+        updated_at: new Date().toISOString()
+    };
+
+    let error;
+    if (currentEditingId) {
+        ({ error } = await supabaseClient
+            .from('listings')
+            .update(payload)
+            .eq('id', currentEditingId)
+            .eq('seller_id', currentUser.id));
+    } else {
+        payload.seller_id = currentUser.id;
+        payload.seller_name = currentUser.name || 'Seller';
+        payload.status = 'pending';
+        ({ error } = await supabaseClient.from('listings').insert(payload));
+    }
+
+    hideButtonLoading(btnId);
+
+    if (error) {
+        showToast("Error: " + error.message, "error");
+    } else {
+        showToast(currentEditingId ? "Listing updated successfully!" : `${listingType === 'service' ? 'Service' : 'Product'} submitted successfully!`, "success");
+        hidePostListingModal();
+        resetPostForm();
+        
+        loadMyListings();
+        loadProducts();
+        loadServices();
+    }
+}
+
+function resetPostForm() {
+    uploadedImages = [];
+    imageFiles = [];
+    existingImages = [];
+    currentEditingId = null;
+    renderPreviews();
+
+    document.getElementById('listing-type').value = 'item';
+    const fields = ['listing-title','listing-price','listing-desc','seller-location','seller-phone','seller-whatsapp'];
+    fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+}
+
+// ==================== SELLER DASHBOARD ====================
+function showSellerDashboard() {
+    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+    document.getElementById('seller-dashboard').style.display = 'block';
+    document.getElementById('seller-name').textContent = currentUser?.name || 'Seller';
+    loadMyListings();
+}
+
+async function loadMyListings() {
+    if (!currentUser) return;
+    const { data } = await supabaseClient
+        .from('listings')
+        .select('*')
+        .eq('seller_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
+    const container = document.getElementById('my-listings-container');
+    container.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-16">
+                <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500">You haven't posted any listings yet.</p>
+                <button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Post Your First Listing</button>
+            </div>`;
+        return;
+    }
+
+    data.forEach(listing => {
+        const div = document.createElement('div');
+        div.className = "border border-gray-100 rounded-3xl p-5 sm:p-6 bg-white flex flex-col sm:flex-row gap-5 hover:shadow-md transition-all";
+        div.innerHTML = `
+            <img src="${getFirstImage(listing.images)}" class="w-full sm:w-28 h-48 sm:h-28 object-cover rounded-2xl flex-shrink-0">
+            <div class="flex-1 min-w-0">
+                <h4 class="font-semibold text-lg leading-tight line-clamp-2">${listing.title}</h4>
+                <p class="text-blue-700 font-bold text-xl mt-2">K ${Number(listing.price).toLocaleString()}</p>
+                <p class="text-sm text-gray-500 mt-1">${listing.seller_location || 'Malawi'}</p>
+                <div class="mt-4 flex flex-wrap gap-2">
+                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full 
+                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                        ${listing.status.toUpperCase()}
+                    </span>
+                </div>
+            </div>
+            <div class="flex flex-col justify-between items-end gap-3 sm:gap-0">
+                <button onclick="editListing('${listing.id}'); event.stopImmediatePropagation()" 
+                        class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-2xl">Edit</button>
+                ${listing.status !== 'sold' ? 
+                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">Mark as Sold</button>` : 
+                    `<span class="text-emerald-600 font-semibold text-sm">✓ Sold</span>`}
+            </div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function editListing(id) {
+    const { data } = await supabaseClient.from('listings').select('*').eq('id', id).single();
+    if (data) showPostListingModal(data);
+}
+
+// ==================== ADMIN DASHBOARD ====================
+function showAdminDashboard() {
+    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+    document.getElementById('admin-dashboard').style.display = 'block';
+    loadPendingListings();
+    loadLiveListingsForAdmin();
+    loadAdminStats();
+}
+
+async function loadAdminStats() {
+    const { data } = await supabaseClient.from('listings').select('status');
+    if (!data) return;
+    
+    const pending = data.filter(l => l.status === 'pending').length;
+    const live = data.filter(l => l.status === 'approved').length;
+    const sold = data.filter(l => l.status === 'sold').length;
+    const rejected = data.filter(l => l.status === 'rejected').length;
+
+    document.getElementById('admin-pending-count').textContent = pending;
+    document.getElementById('admin-live-count').textContent = live;
+    document.getElementById('admin-sold-count').textContent = sold;
+    document.getElementById('admin-total-count').textContent = data.length;
+    document.getElementById('admin-rejected-count').textContent = rejected;
+}
+
+async function loadPendingListings() {
+    const { data } = await supabaseClient.from('listings').select('*').eq('status', 'pending');
+    const tbody = document.getElementById('admin-tbody');
+    tbody.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        document.getElementById('admin-empty-state').classList.remove('hidden');
+        return;
+    }
+    document.getElementById('admin-empty-state').classList.add('hidden');
+
+    data.forEach(listing => {
+        const row = document.createElement('tr');
+        row.className = "hover:bg-gray-50";
+        row.innerHTML = `
+            <td class="py-4">
+                <div class="flex items-center gap-3">
+                    <img src="${getFirstImage(listing.images)}" class="w-12 h-12 object-cover rounded-xl">
+                    <span>${listing.title}</span>
+                </div>
+            </td>
+            <td class="py-4">${listing.seller_name || listing.seller_phone || 'N/A'}</td>
+            <td class="py-4 font-medium">K ${Number(listing.price).toLocaleString()}</td>
+            <td class="py-4 text-center">
+                <button onclick="approveListing('${listing.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-2xl text-sm mr-2 hover:bg-blue-700">Approve</button>
+                <button onclick="rejectListing('${listing.id}')" class="bg-red-600 text-white px-5 py-2 rounded-2xl text-sm hover:bg-red-700">Reject</button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+}
+
+async function loadLiveListingsForAdmin() {
+    const { data } = await supabaseClient.from('listings').select('*').eq('status', 'approved');
+    const container = document.getElementById('admin-live-products');
+    container.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        document.getElementById('admin-live-empty').classList.remove('hidden');
+        return;
+    }
+    document.getElementById('admin-live-empty').classList.add('hidden');
+
+    data.forEach(listing => {
+        const div = document.createElement('div');
+        div.className = "bg-white border rounded-3xl p-6 shadow hover:shadow-xl transition-all";
+        div.innerHTML = `
+            <img src="${getFirstImage(listing.images)}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-48 object-cover rounded-2xl mb-4">
+            <h4 class="font-semibold text-lg">${listing.title}</h4>
+            <p class="text-blue-700 font-bold text-xl">K ${Number(listing.price).toLocaleString()}</p>
+        `;
+        container.appendChild(div);
+    });
+}
+
+async function approveListing(id) {
+    await supabaseClient.from('listings').update({ status: 'approved' }).eq('id', id);
+    showToast("Listing approved!", "success");
+    loadPendingListings();
+    loadLiveListingsForAdmin();
+    loadAdminStats();
+    loadProducts();
+    loadServices();
+}
+
+async function rejectListing(id) {
+    if (!confirm("Reject this listing?")) return;
+    await supabaseClient.from('listings').update({ status: 'rejected' }).eq('id', id);
+    showToast("Listing rejected", "warning");
+    loadPendingListings();
+    loadAdminStats();
+}
+
+async function markAsSold(id) {
+    if (confirm("Mark as sold?")) {
+        await supabaseClient.from('listings').update({ status: 'sold' }).eq('id', id);
+        showToast("Marked as sold!", "success");
+        loadMyListings();
+        loadProducts();
+        loadServices();
+        if (currentUser?.role === 'admin') loadAdminStats();
+    }
 }
 
 // ==================== GLOBAL SEARCH ====================
@@ -312,7 +695,7 @@ function performSearch() {
     }
 }
 
-// ==================== MARKETPLACE FILTERING & LOAD MORE ====================
+// ==================== MARKETPLACE & SERVICES ====================
 function filterMarketplace() {
     const category = document.getElementById('category-filter')?.value || '';
     const locationFilter = (document.getElementById('marketplace-location-filter')?.value || '').toLowerCase().trim();
@@ -344,7 +727,6 @@ function loadMoreMarketplace() {
     updateLoadMoreButton('load-more-btn', currentFilteredProducts);
 }
 
-// ==================== SERVICES FILTERING & LOAD MORE ====================
 function filterServices() {
     const category = document.getElementById('service-category-filter')?.value || '';
     const locationFilter = (document.getElementById('service-location-filter')?.value || '').toLowerCase().trim();
@@ -415,7 +797,6 @@ function renderServicesPaginated() {
     updateLoadMoreButton('load-more-services-btn', currentFilteredServices);
 }
 
-// ==================== LOAD MORE BUTTON HELPER ====================
 function updateLoadMoreButton(btnId, filteredArray) {
     const loadBtn = document.getElementById(btnId);
     if (!loadBtn) return;
@@ -425,7 +806,6 @@ function updateLoadMoreButton(btnId, filteredArray) {
     loadBtn.style.display = hasMore ? 'block' : 'none';
 }
 
-// ==================== RENDER PRODUCTS ====================
 function renderTrending() {
     renderProducts('trending-grid', allProducts.slice(0, 8));
 }
@@ -546,133 +926,6 @@ function contactSeller(id, type) {
     if (type === 'whatsapp' && wa) window.open(`https://wa.me/${wa}`, '_blank');
 }
 
-// ==================== IMAGE HANDLING ====================
-function handleImageUpload(e) {
-    const files = Array.from(e.target.files);
-    if (uploadedImages.length + files.length > 6) {
-        return showToast("Maximum 6 images allowed!", "warning");
-    }
-
-    files.forEach(file => {
-        if (!file.type.startsWith('image/')) return;
-        imageFiles.push(file);
-        const reader = new FileReader();
-        reader.onload = ev => {
-            uploadedImages.push(ev.target.result);
-            renderPreviews();
-        };
-        reader.readAsDataURL(file);
-    });
-    e.target.value = '';
-}
-
-function renderPreviews() {
-    const container = document.getElementById('preview-container');
-    if (!container) return;
-    container.innerHTML = '';
-    uploadedImages.forEach((src, i) => {
-        const div = document.createElement('div');
-        div.className = "aspect-square rounded-2xl overflow-hidden border relative";
-        div.innerHTML = `
-            <img src="${src}" class="w-full h-full object-cover">
-            <button onclick="removePreviewImage(${i}); event.stopImmediatePropagation()" 
-                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
-        `;
-        container.appendChild(div);
-    });
-}
-
-function removePreviewImage(index) {
-    uploadedImages.splice(index, 1);
-    imageFiles.splice(index, 1);
-    renderPreviews();
-}
-
-async function uploadImagesToStorage() {
-    const imageUrls = [];
-    for (let file of imageFiles) {
-        try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-            const filePath = `listings/${fileName}`;
-
-            const { error } = await supabaseClient.storage.from('listings').upload(filePath, file, { upsert: true });
-            if (error) continue;
-
-            const { data: { publicUrl } } = supabaseClient.storage.from('listings').getPublicUrl(filePath);
-            imageUrls.push(publicUrl);
-        } catch (err) {
-            console.error(err);
-        }
-    }
-    return imageUrls;
-}
-
-// ==================== SUBMIT LISTING ====================
-async function submitListing() {
-    const btnId = 'submit-listing-btn';
-    showButtonLoading(btnId, 'Submitting...');
-
-    if (!currentUser) {
-        hideButtonLoading(btnId);
-        return showToast("Please login first", "error");
-    }
-    if (imageFiles.length === 0) {
-        hideButtonLoading(btnId);
-        return showToast("Please upload at least one image for your listing.", "error");
-    }
-
-    const listingType = document.getElementById('listing-type')?.value || 'item';
-    const mainCategory = document.getElementById('listing-category')?.value || 'General';
-    const subService = document.getElementById('sub-service')?.value || '';
-
-    const finalTitle = (document.getElementById('listing-title')?.value || '').trim();
-    const price = parseFloat(document.getElementById('listing-price')?.value);
-
-    if (!finalTitle || isNaN(price) || price <= 0) {
-        hideButtonLoading(btnId);
-        return showToast("Title and valid price are required", "error");
-    }
-
-    const imageUrls = await uploadImagesToStorage();
-
-    const payload = {
-        title: finalTitle,
-        price: price,
-        category: mainCategory,
-        sub_category: subService,
-        type: listingType,
-        description: document.getElementById('listing-desc')?.value?.trim() || '',
-        seller_id: currentUser.id,
-        seller_name: document.getElementById('seller-name')?.value?.trim() || currentUser.name,
-        seller_location: document.getElementById('seller-location')?.value?.trim() || "Malawi",
-        seller_phone: document.getElementById('seller-phone')?.value?.trim() || '',
-        seller_whatsapp: document.getElementById('seller-whatsapp')?.value?.trim() || '',
-        status: 'pending',
-        images: imageUrls
-    };
-
-    const { error } = await supabaseClient.from('listings').insert(payload);
-
-    hideButtonLoading(btnId);
-
-    if (error) {
-        showToast("Error: " + error.message, "error");
-    } else {
-        showToast(`${listingType === 'service' ? 'Service' : 'Product'} submitted successfully!`, "success");
-        hidePostListingModal();
-        resetPostForm();
-        
-        if (listingType === 'service') {
-            navigateTo('services');
-            loadServices();
-        } else {
-            navigateTo('marketplace');
-            loadProducts();
-        }
-    }
-}
-
 // ==================== AUTH FUNCTIONS ====================
 async function performSignup() {
     const btnId = 'signup-submit-btn';
@@ -700,7 +953,7 @@ async function performSignup() {
     if (error) {
         showToast("Signup error: " + error.message, "error");
     } else {
-        showToast(`Account created! Login with phone: ${phone}`, "success");
+        showToast(`Account created! Please login with your phone.`, "success");
         hideSignupModal();
         showLoginModal();
     }
@@ -714,7 +967,7 @@ async function performLogin() {
     const password = document.getElementById('login-password')?.value.trim();
 
     if (username === '0883944589' && password === 'Waiyatsa1651') {
-        currentUser = { role: 'admin', name: "Macmillan Waiyatsa", id: 'admin', avatar_url: null };
+        currentUser = { role: 'admin', name: "Macmillan Waiyatsa", id: 'admin' };
         hideButtonLoading(btnId);
         finishLogin();
         return;
@@ -741,8 +994,7 @@ async function performLogin() {
     currentUser = {
         role: 'seller',
         name: data.user?.user_metadata?.full_name || username,
-        id: data.user.id,
-        avatar_url: data.user?.user_metadata?.avatar_url || null
+        id: data.user.id
     };
 
     finishLogin();
@@ -751,7 +1003,6 @@ async function performLogin() {
 function finishLogin() {
     updateAuthUI(true, currentUser.name, currentUser.role);
     updateProfileUI();
-    updateProfilePictureUI();
     hideLoginModal();
     showToast("Login successful!", "success");
 
@@ -766,8 +1017,7 @@ async function checkAuthState() {
         currentUser = {
             role: 'seller',
             name: session.user.user_metadata?.full_name || "Seller",
-            id: session.user.id,
-            avatar_url: session.user.user_metadata?.avatar_url || null
+            id: session.user.id
         };
         finishLogin();
     }
@@ -780,233 +1030,6 @@ async function logout() {
         updateAuthUI(false);
         updateProfileUI();
         location.reload();
-    }
-}
-
-// ==================== AUTH UI ====================
-function updateAuthUI(isLoggedIn, username = "", role = "") {
-    const userInfo = document.getElementById('sidebar-user-info');
-    const loggedInSection = document.getElementById('sidebar-logged-in');
-    const loggedOutSection = document.getElementById('sidebar-logged-out');
-    const loginBtn = document.getElementById('login-btn');
-
-    if (isLoggedIn) {
-        document.getElementById('sidebar-username').textContent = username;
-        document.getElementById('sidebar-role').textContent = role || "Member";
-        userInfo.classList.remove('hidden');
-        loggedInSection.classList.remove('hidden');
-        loggedOutSection.classList.add('hidden');
-        if (loginBtn) loginBtn.style.display = "none";
-    } else {
-        userInfo.classList.add('hidden');
-        loggedInSection.classList.add('hidden');
-        loggedOutSection.classList.remove('hidden');
-        if (loginBtn) loginBtn.style.display = "block";
-    }
-}
-
-function updateProfileUI() {
-    const loginBtn = document.getElementById('login-btn');
-    const dashboardContainer = document.getElementById('dashboard-icon-container');
-
-    if (currentUser) {
-        loginBtn.classList.add('hidden');
-        dashboardContainer.classList.remove('hidden');
-    } else {
-        loginBtn.classList.remove('hidden');
-        dashboardContainer.classList.add('hidden');
-    }
-}
-
-function toggleProfileMenu() {
-    if (currentUser) showSellerDashboard();
-}
-
-// ==================== SELLER DASHBOARD ====================
-function showSellerDashboard() {
-    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
-    document.getElementById('seller-dashboard').style.display = 'block';
-    document.getElementById('seller-name').textContent = currentUser?.name || 'Seller';
-    updateProfilePictureUI();
-    loadMyListings();
-    loadSellerAnalytics();
-}
-
-async function loadSellerAnalytics() {
-    if (!currentUser) return;
-    const { data } = await supabaseClient.from('listings').select('status').eq('seller_id', currentUser.id);
-    
-    if (!data) {
-        document.getElementById('seller-total').textContent = "0";
-        document.getElementById('seller-pending').textContent = "0";
-        document.getElementById('seller-approved').textContent = "0";
-        document.getElementById('seller-sold').textContent = "0";
-        return;
-    }
-
-    const total = data.length;
-    const pending = data.filter(l => l.status === 'pending').length;
-    const approved = data.filter(l => l.status === 'approved').length;
-    const sold = data.filter(l => l.status === 'sold').length;
-
-    document.getElementById('seller-total').textContent = total;
-    document.getElementById('seller-pending').textContent = pending;
-    document.getElementById('seller-approved').textContent = approved;
-    document.getElementById('seller-sold').textContent = sold;
-}
-
-async function loadMyListings() {
-    if (!currentUser) return;
-    const { data } = await supabaseClient
-        .from('listings')
-        .select('*')
-        .eq('seller_id', currentUser.id)
-        .order('created_at', { ascending: false });
-
-    const container = document.getElementById('my-listings-container');
-    container.innerHTML = '';
-
-    if (!data || data.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-16">
-                <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500">You haven't posted any listings yet.</p>
-                <button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Post Your First Listing</button>
-            </div>`;
-        return;
-    }
-
-    data.forEach(listing => {
-        const div = document.createElement('div');
-        div.className = "border border-gray-100 rounded-3xl p-5 sm:p-6 bg-white flex flex-col sm:flex-row gap-5 hover:shadow-md transition-all";
-        div.innerHTML = `
-            <img src="${getFirstImage(listing.images)}" class="w-full sm:w-28 h-48 sm:h-28 object-cover rounded-2xl flex-shrink-0">
-            <div class="flex-1 min-w-0">
-                <h4 class="font-semibold text-lg leading-tight line-clamp-2">${listing.title}</h4>
-                <p class="text-blue-700 font-bold text-xl mt-2">K ${Number(listing.price).toLocaleString()}</p>
-                <p class="text-sm text-gray-500 mt-1">${listing.seller_location || 'Malawi'}</p>
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full 
-                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-                        ${listing.status.toUpperCase()}
-                    </span>
-                </div>
-            </div>
-            <div class="flex flex-col justify-between items-end gap-3 sm:gap-0">
-                ${listing.status !== 'sold' ? 
-                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">Mark as Sold</button>` : 
-                    `<span class="text-emerald-600 font-semibold text-sm">✓ Sold</span>`}
-            </div>
-        `;
-        container.appendChild(div);
-    });
-}
-
-// ==================== ADMIN DASHBOARD ====================
-function showAdminDashboard() {
-    document.querySelectorAll('section').forEach(s => s.style.display = 'none');
-    document.getElementById('admin-dashboard').style.display = 'block';
-    updateProfilePictureUI();
-    loadPendingListings();
-    loadLiveListingsForAdmin();
-    loadAdminStats();
-}
-
-async function loadAdminStats() {
-    const { data } = await supabaseClient.from('listings').select('status, price');
-    if (!data) return;
-    
-    const pending = data.filter(l => l.status === 'pending').length;
-    const live = data.filter(l => l.status === 'approved').length;
-    const total = data.length;
-    const rejected = data.filter(l => l.status === 'rejected').length;
-
-    document.getElementById('admin-pending-count').textContent = pending;
-    document.getElementById('admin-live-count').textContent = live;
-    document.getElementById('admin-total-count').textContent = total;
-    document.getElementById('admin-rejected-count').textContent = rejected;
-}
-
-async function loadPendingListings() {
-    const { data } = await supabaseClient.from('listings').select('*').eq('status', 'pending');
-    const tbody = document.getElementById('admin-tbody');
-    tbody.innerHTML = '';
-
-    if (!data || data.length === 0) {
-        document.getElementById('admin-empty-state').classList.remove('hidden');
-        return;
-    }
-    document.getElementById('admin-empty-state').classList.add('hidden');
-
-    data.forEach(listing => {
-        const row = document.createElement('tr');
-        row.className = "hover:bg-gray-50";
-        row.innerHTML = `
-            <td class="py-4">
-                <div class="flex items-center gap-3">
-                    <img src="${getFirstImage(listing.images)}" class="w-12 h-12 object-cover rounded-xl">
-                    <span>${listing.title}</span>
-                </div>
-            </td>
-            <td class="py-4">${listing.seller_name || listing.seller_phone || 'N/A'}</td>
-            <td class="py-4 font-medium">K ${Number(listing.price).toLocaleString()}</td>
-            <td class="py-4 text-center">
-                <button onclick="approveListing('${listing.id}')" class="bg-blue-600 text-white px-5 py-2 rounded-2xl text-sm mr-2 hover:bg-blue-700">Approve</button>
-                <button onclick="rejectListing('${listing.id}')" class="bg-red-600 text-white px-5 py-2 rounded-2xl text-sm hover:bg-red-700">Reject</button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-async function loadLiveListingsForAdmin() {
-    const { data } = await supabaseClient.from('listings').select('*').eq('status', 'approved');
-    const container = document.getElementById('admin-live-products');
-    container.innerHTML = '';
-
-    if (!data || data.length === 0) {
-        document.getElementById('admin-live-empty').classList.remove('hidden');
-        return;
-    }
-    document.getElementById('admin-live-empty').classList.add('hidden');
-
-    data.forEach(listing => {
-        const div = document.createElement('div');
-        div.className = "bg-white border rounded-3xl p-6 shadow hover:shadow-xl transition-all";
-        div.innerHTML = `
-            <img src="${getFirstImage(listing.images)}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-48 object-cover rounded-2xl mb-4">
-            <h4 class="font-semibold text-lg">${listing.title}</h4>
-            <p class="text-blue-700 font-bold text-xl">K ${Number(listing.price).toLocaleString()}</p>
-        `;
-        container.appendChild(div);
-    });
-}
-
-async function approveListing(id) {
-    await supabaseClient.from('listings').update({ status: 'approved' }).eq('id', id);
-    showToast("Listing approved!", "success");
-    loadPendingListings();
-    loadLiveListingsForAdmin();
-    loadAdminStats();
-    loadProducts();
-    loadServices();
-}
-
-async function rejectListing(id) {
-    if (!confirm("Reject this listing?")) return;
-    await supabaseClient.from('listings').update({ status: 'rejected' }).eq('id', id);
-    showToast("Listing rejected", "warning");
-    loadPendingListings();
-    loadAdminStats();
-}
-
-async function markAsSold(id) {
-    if (confirm("Mark as sold?")) {
-        await supabaseClient.from('listings').update({ status: 'sold' }).eq('id', id);
-        showToast("Marked as sold!", "success");
-        loadMyListings();
-        loadProducts();
-        loadServices();
     }
 }
 
@@ -1042,13 +1065,6 @@ async function loadServices() {
     }
 }
 
-function resetPostForm() {
-    uploadedImages = [];
-    imageFiles = [];
-    renderPreviews();
-    document.getElementById('listing-type').value = 'item';
-}
-
 // ==================== START APPLICATION ====================
 window.onload = async () => {
     await initSupabase();
@@ -1056,21 +1072,7 @@ window.onload = async () => {
     await loadProducts();
     await loadServices();
 
-    // Hamburger Menu
-    const hamburger = document.getElementById('hamburger-btn');
-    if (hamburger) hamburger.addEventListener('click', toggleSidebar);
-
-    // Search listeners
-    ['search-input-desktop', 'search-input-mobile'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.addEventListener('keypress', e => {
-                if (e.key === 'Enter') performSearch();
-            });
-        }
-    });
-
-    updateProfileUI();
+    updateAuthUI(false);
     navigateTo('home');
-    console.log("✅ Simpo Malawi");
+    console.log("✅ Simpo Malawi - Full JavaScript with Edit & Image Fixes Loaded");
 };
