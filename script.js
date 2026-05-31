@@ -1084,6 +1084,27 @@ async function loadServices() {
     }
 }
 
+// Activate bottom nav item
+function activateBottomNav(el) {
+    document.querySelectorAll('.bottom-nav-item').forEach(item => {
+        item.classList.remove('active');
+    });
+    if (el) el.classList.add('active');
+}
+
+// Show correct dashboard based on user role
+function showDashboard() {
+    if (!currentUser) {
+        showLoginModal();
+        return;
+    }
+    if (currentUser.role === 'admin') {
+        showAdminDashboard();
+    } else {
+        showSellerDashboard();
+    }
+}
+
 // ==================== START APPLICATION ====================
 window.onload = async () => {
     await initSupabase();
