@@ -10,10 +10,14 @@ let uploadedImages = [];
 let imageFiles = [];
 let existingImages = [];
 let currentEditingId = null;
+let currentProduct = null;
 
 let marketplacePage = 1;
 let servicesPage = 1;
 const PAGE_SIZE = 12;
+
+let touchStartX = 0;
+let touchEndX = 0;
 
 // ==================== TOAST NOTIFICATION ====================
 function showToast(message, type = 'success') {
@@ -39,10 +43,7 @@ function showToast(message, type = 'success') {
     `;
 
     toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-        if (toast.parentElement) toast.remove();
-    }, 4500);
+    setTimeout(() => { if (toast.parentElement) toast.remove(); }, 4500);
 }
 
 // ==================== SUPABASE CLIENT ====================
@@ -59,11 +60,44 @@ async function initSupabase() {
     });
 }
 
+// ==================== MOBILE SWIPE NAVIGATION ====================
+function setupMobileSwipe() {
+    const mainContent = document.getElementById('main-content') || document.body;
+    mainContent.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+    mainContent.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+}
+
+function handleSwipe() {
+    const threshold = 80;
+    const diff = touchStartX - touchEndX;
+    if (Math.abs(diff) < threshold) return;
+
+    const currentPage = getCurrentVisiblePage();
+    if (diff > 0) {
+        if (currentPage === 'home') navigateTo('marketplace');
+        else if (currentPage === 'marketplace') navigateTo('services');
+    } else {
+        if (currentPage === 'services') navigateTo('marketplace');
+        else if (currentPage === 'marketplace') navigateTo('home');
+    }
+}
+
+function getCurrentVisiblePage() {
+    if (document.getElementById('home-section').style.display !== 'none') return 'home';
+    if (document.getElementById('marketplace-section').style.display !== 'none') return 'marketplace';
+    if (document.getElementById('services-section').style.display !== 'none') return 'services';
+    return 'home';
+}
+
 // ==================== SIDEBAR ====================
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar-menu');
     const overlay = document.getElementById('sidebar-overlay');
-    
     if (!sidebar || !overlay) return;
 
     if (sidebar.classList.contains('-translate-x-full')) {
@@ -77,7 +111,7 @@ function toggleSidebar() {
     }
 }
 
-// ==================== MODAL FUNCTIONS ====================
+// ==================== MODALS ====================
 function showLoginModal() {
     toggleSidebar();
     const modal = document.getElementById('login-modal');
@@ -86,10 +120,7 @@ function showLoginModal() {
 
 function hideLoginModal() {
     const modal = document.getElementById('login-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    if (modal) modal.classList.add('hidden').classList.remove('flex');
 }
 
 function showSignupModal() {
@@ -100,10 +131,7 @@ function showSignupModal() {
 
 function hideSignupModal() {
     const modal = document.getElementById('signup-modal');
-    if (modal) {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
+    if (modal) modal.classList.add('hidden').classList.remove('flex');
 }
 
 function showPostListingModal(editListing = null) {
@@ -111,9 +139,7 @@ function showPostListingModal(editListing = null) {
     if (!modal) return;
 
     currentEditingId = editListing ? editListing.id : null;
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-
+    modal.classList.remove('hidden').classList.add('flex');
     resetPostForm();
 
     if (editListing) {
@@ -257,27 +283,42 @@ function updateAuthUI(isLoggedIn, username = "", role = "") {
     const userInfo = document.getElementById('sidebar-user-info');
     const loggedInSection = document.getElementById('sidebar-logged-in');
     const loggedOutSection = document.getElementById('sidebar-logged-out');
-    const loginBtn = document.getElementById('login-btn');
+    const adminLink = document.getElementById('sidebar-admin-link');
+    const bottomDashboardBtn = document.getElementById('bottom-dashboard-btn');
 
     if (isLoggedIn) {
         document.getElementById('sidebar-username').textContent = username;
         document.getElementById('sidebar-role').textContent = role || "Member";
+
         if (userInfo) userInfo.classList.remove('hidden');
         if (loggedInSection) loggedInSection.classList.remove('hidden');
         if (loggedOutSection) loggedOutSection.classList.add('hidden');
-        if (loginBtn) loginBtn.style.display = "none";
+
+        if (role === 'admin') {
+            if (adminLink) adminLink.classList.remove('hidden');
+            if (bottomDashboardBtn) {
+                bottomDashboardBtn.classList.remove('hidden');
+                bottomDashboardBtn.onclick = () => showAdminDashboard();
+            }
+        } else {
+            if (adminLink) adminLink.classList.add('hidden');
+            if (bottomDashboardBtn) {
+                bottomDashboardBtn.classList.remove('hidden');
+                bottomDashboardBtn.onclick = () => showSellerDashboard();
+            }
+        }
     } else {
         if (userInfo) userInfo.classList.add('hidden');
         if (loggedInSection) loggedInSection.classList.add('hidden');
         if (loggedOutSection) loggedOutSection.classList.remove('hidden');
-        if (loginBtn) loginBtn.style.display = "block";
+        if (adminLink) adminLink.classList.add('hidden');
+        if (bottomDashboardBtn) bottomDashboardBtn.classList.add('hidden');
     }
 }
 
 function updateProfileUI() {
     const loginBtn = document.getElementById('login-btn');
     const dashboardContainer = document.getElementById('dashboard-icon-container');
-
     if (currentUser) {
         if (loginBtn) loginBtn.classList.add('hidden');
         if (dashboardContainer) dashboardContainer.classList.remove('hidden');
@@ -287,7 +328,7 @@ function updateProfileUI() {
     }
 }
 
-// ==================== HOME SERVICES ====================
+// ==================== HOME RENDERING ====================
 function renderHomeServices() {
     const container = document.getElementById('home-services-grid');
     if (!container) return;
@@ -297,11 +338,8 @@ function renderHomeServices() {
         const imageUrl = getFirstImage(item.images);
         const card = document.createElement('div');
         card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
-
         card.innerHTML = `
-            <img src="${imageUrl}" 
-                 onerror="this.src='https://picsum.photos/id/1015/400/300'" 
-                 class="w-full h-48 object-cover bg-gray-200">
+            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-48 object-cover bg-gray-200">
             <div class="p-6">
                 <h4 class="font-semibold text-lg">${item.title}</h4>
                 <p class="text-blue-600 font-bold text-xl mt-2">K ${Number(item.price).toLocaleString()}</p>
@@ -313,13 +351,16 @@ function renderHomeServices() {
     });
 }
 
+function renderTrending() {
+    renderProducts('trending-grid', allProducts.slice(0, 8));
+}
+
 // ==================== IMAGE HANDLING ====================
 function handleImageUpload(e) {
     const files = Array.from(e.target.files);
     if (uploadedImages.length + existingImages.length + files.length > 6) {
         return showToast("Maximum 6 images allowed!", "warning");
     }
-
     files.forEach(file => {
         if (!file.type.startsWith('image/')) return;
         imageFiles.push(file);
@@ -341,22 +382,14 @@ function renderPreviews() {
     existingImages.forEach((src, i) => {
         const div = document.createElement('div');
         div.className = "aspect-square rounded-2xl overflow-hidden border relative";
-        div.innerHTML = `
-            <img src="${src}" class="w-full h-full object-cover">
-            <button onclick="removeExistingImage(${i}); event.stopImmediatePropagation()" 
-                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
-        `;
+        div.innerHTML = `<img src="${src}" class="w-full h-full object-cover"><button onclick="removeExistingImage(${i}); event.stopImmediatePropagation()" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>`;
         container.appendChild(div);
     });
 
     uploadedImages.forEach((src, i) => {
         const div = document.createElement('div');
         div.className = "aspect-square rounded-2xl overflow-hidden border relative";
-        div.innerHTML = `
-            <img src="${src}" class="w-full h-full object-cover">
-            <button onclick="removePreviewImage(${i}); event.stopImmediatePropagation()" 
-                    class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>
-        `;
+        div.innerHTML = `<img src="${src}" class="w-full h-full object-cover"><button onclick="removePreviewImage(${i}); event.stopImmediatePropagation()" class="absolute top-1 right-1 bg-red-600 text-white w-6 h-6 rounded-full text-xs">×</button>`;
         container.appendChild(div);
     });
 }
@@ -379,10 +412,8 @@ async function uploadImagesToStorage() {
             const fileExt = file.name.split('.').pop();
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
             const filePath = `listings/${fileName}`;
-
             const { error } = await supabaseClient.storage.from('listings').upload(filePath, file, { upsert: true });
             if (error) continue;
-
             const { data: { publicUrl } } = supabaseClient.storage.from('listings').getPublicUrl(filePath);
             imageUrls.push(publicUrl);
         } catch (err) {
@@ -438,11 +469,9 @@ async function submitListing() {
 
     let error;
     if (currentEditingId) {
-        ({ error } = await supabaseClient
-            .from('listings')
-            .update(payload)
-            .eq('id', currentEditingId)
-            .eq('seller_id', currentUser.id));
+        let query = supabaseClient.from('listings').update(payload).eq('id', currentEditingId);
+        if (currentUser.role !== 'admin') query = query.eq('seller_id', currentUser.id);
+        ({ error } = await query);
     } else {
         payload.seller_id = currentUser.id;
         payload.seller_name = currentUser.name || 'Seller';
@@ -458,10 +487,14 @@ async function submitListing() {
         showToast(currentEditingId ? "Listing updated successfully!" : `${listingType === 'service' ? 'Service' : 'Product'} submitted successfully!`, "success");
         hidePostListingModal();
         resetPostForm();
-        
         loadMyListings();
         loadProducts();
         loadServices();
+        if (currentUser.role === 'admin') {
+            loadPendingListings();
+            loadLiveListingsForAdmin();
+            loadAdminStats();
+        }
     }
 }
 
@@ -482,30 +515,38 @@ function resetPostForm() {
 
 // ==================== SELLER DASHBOARD ====================
 function showSellerDashboard() {
+    if (currentUser && currentUser.role === 'admin') {
+        return showAdminDashboard();
+    }
     document.querySelectorAll('section').forEach(s => s.style.display = 'none');
     document.getElementById('seller-dashboard').style.display = 'block';
     document.getElementById('seller-name').textContent = currentUser?.name || 'Seller';
     loadMyListings();
+    loadSellerStats();
+}
+
+async function loadSellerStats() {
+    if (!currentUser || currentUser.role === 'admin') return;
+    const { data } = await supabaseClient.from('listings').select('status').eq('seller_id', currentUser.id);
+    const total = data ? data.length : 0;
+    const pending = data ? data.filter(l => l.status === 'pending').length : 0;
+    const approved = data ? data.filter(l => l.status === 'approved').length : 0;
+    const sold = data ? data.filter(l => l.status === 'sold').length : 0;
+
+    document.getElementById('seller-total').textContent = total;
+    document.getElementById('seller-pending').textContent = pending;
+    document.getElementById('seller-approved').textContent = approved;
+    document.getElementById('seller-sold').textContent = sold;
 }
 
 async function loadMyListings() {
-    if (!currentUser) return;
-    const { data } = await supabaseClient
-        .from('listings')
-        .select('*')
-        .eq('seller_id', currentUser.id)
-        .order('created_at', { ascending: false });
-
+    if (!currentUser || currentUser.role === 'admin') return;
+    const { data } = await supabaseClient.from('listings').select('*').eq('seller_id', currentUser.id).order('created_at', { ascending: false });
     const container = document.getElementById('my-listings-container');
     container.innerHTML = '';
 
     if (!data || data.length === 0) {
-        container.innerHTML = `
-            <div class="text-center py-16">
-                <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i>
-                <p class="text-gray-500">You haven't posted any listings yet.</p>
-                <button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Post Your First Listing</button>
-            </div>`;
+        container.innerHTML = `<div class="text-center py-16"><i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i><p class="text-gray-500">You haven't posted any listings yet.</p><button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Post Your First Listing</button></div>`;
         return;
     }
 
@@ -518,19 +559,15 @@ async function loadMyListings() {
                 <h4 class="font-semibold text-lg leading-tight line-clamp-2">${listing.title}</h4>
                 <p class="text-blue-700 font-bold text-xl mt-2">K ${Number(listing.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-500 mt-1">${listing.seller_location || 'Malawi'}</p>
-                <div class="mt-4 flex flex-wrap gap-2">
-                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full 
-                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
-                        ${listing.status.toUpperCase()}
+                <div class="mt-4">
+                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                        ${listing.status ? listing.status.toUpperCase() : 'PENDING'}
                     </span>
                 </div>
             </div>
-            <div class="flex flex-col justify-between items-end gap-3 sm:gap-0">
-                <button onclick="editListing('${listing.id}'); event.stopImmediatePropagation()" 
-                        class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-2xl">Edit</button>
-                ${listing.status !== 'sold' ? 
-                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">Mark as Sold</button>` : 
-                    `<span class="text-emerald-600 font-semibold text-sm">✓ Sold</span>`}
+            <div class="flex flex-col justify-between items-end gap-3">
+                <button onclick="editListing('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-2xl">Edit</button>
+                ${listing.status !== 'sold' ? `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">Mark as Sold</button>` : `<span class="text-emerald-600 font-semibold">✓ Sold</span>`}
             </div>
         `;
         container.appendChild(div);
@@ -552,7 +589,7 @@ function showAdminDashboard() {
 }
 
 async function loadAdminStats() {
-    const { data } = await supabaseClient.from('listings').select('status');
+    const { data } = await supabaseClient.from('listings').select('status, price');
     if (!data) return;
     
     const pending = data.filter(l => l.status === 'pending').length;
@@ -562,7 +599,6 @@ async function loadAdminStats() {
 
     document.getElementById('admin-pending-count').textContent = pending;
     document.getElementById('admin-live-count').textContent = live;
-    document.getElementById('admin-sold-count').textContent = sold;
     document.getElementById('admin-total-count').textContent = data.length;
     document.getElementById('admin-rejected-count').textContent = rejected;
 }
@@ -647,11 +683,14 @@ async function markAsSold(id) {
         loadMyListings();
         loadProducts();
         loadServices();
-        if (currentUser?.role === 'admin') loadAdminStats();
+        if (currentUser?.role === 'admin') {
+            loadAdminStats();
+            loadLiveListingsForAdmin();
+        }
     }
 }
 
-// ==================== GLOBAL SEARCH ====================
+// ==================== SEARCH & FILTERS ====================
 function performSearch() {
     let query = '';
     const desktop = document.getElementById('search-input-desktop');
@@ -695,7 +734,6 @@ function performSearch() {
     }
 }
 
-// ==================== MARKETPLACE & SERVICES ====================
 function filterMarketplace() {
     const category = document.getElementById('category-filter')?.value || '';
     const locationFilter = (document.getElementById('marketplace-location-filter')?.value || '').toLowerCase().trim();
@@ -712,18 +750,6 @@ function filterMarketplace() {
     currentFilteredProducts = filtered;
     marketplacePage = 1;
     renderProducts('marketplace-grid', currentFilteredProducts.slice(0, PAGE_SIZE));
-    updateLoadMoreButton('load-more-btn', currentFilteredProducts);
-}
-
-function loadMoreMarketplace() {
-    marketplacePage++;
-    const start = (marketplacePage - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    const newItems = currentFilteredProducts.slice(start, end);
-    
-    if (newItems.length > 0) {
-        renderProducts('marketplace-grid', newItems, true);
-    }
     updateLoadMoreButton('load-more-btn', currentFilteredProducts);
 }
 
@@ -745,71 +771,7 @@ function filterServices() {
     renderServicesPaginated();
 }
 
-function renderServicesPaginatedWithData(data) {
-    currentFilteredServices = data || [];
-    servicesPage = 1;
-    renderServicesPaginated();
-}
-
-function loadMoreServices() {
-    servicesPage++;
-    renderServicesPaginated();
-}
-
-function renderServicesPaginated() {
-    const container = document.getElementById('services-grid');
-    if (!container) return;
-    if (servicesPage === 1) container.innerHTML = '';
-
-    const start = (servicesPage - 1) * PAGE_SIZE;
-    const end = start + PAGE_SIZE;
-    const pageItems = currentFilteredServices.slice(start, end);
-
-    pageItems.forEach(item => {
-        const imageUrl = getFirstImage(item.images);
-        const subCategoryHTML = item.sub_category ? 
-            `<span class="inline-block mt-2 px-4 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
-
-        const card = document.createElement('div');
-        card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
-
-        card.innerHTML = `
-            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-56 object-cover bg-gray-200">
-            <div class="p-6">
-                <h4 class="font-semibold text-lg">${item.title}</h4>
-                ${subCategoryHTML}
-                <p class="text-blue-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
-                <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
-                <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
-                <div class="mt-6 flex gap-3">
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'phone')" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'whatsapp')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
-                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                    </button>
-                </div>
-            </div>
-        `;
-
-        card.addEventListener('click', () => showProductDetail(item.id));
-        container.appendChild(card);
-    });
-
-    updateLoadMoreButton('load-more-services-btn', currentFilteredServices);
-}
-
-function updateLoadMoreButton(btnId, filteredArray) {
-    const loadBtn = document.getElementById(btnId);
-    if (!loadBtn) return;
-    
-    const currentPage = (btnId === 'load-more-btn') ? marketplacePage : servicesPage;
-    const hasMore = (currentPage * PAGE_SIZE) < filteredArray.length;
-    loadBtn.style.display = hasMore ? 'block' : 'none';
-}
-
-function renderTrending() {
-    renderProducts('trending-grid', allProducts.slice(0, 8));
-}
-
+// ==================== RENDER FUNCTIONS ====================
 function renderProducts(containerId, list, append = false) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -823,10 +785,8 @@ function renderProducts(containerId, list, append = false) {
     list.forEach(product => {
         const imageUrl = getFirstImage(product.images);
         const rating = (4 + Math.random() * 1).toFixed(1);
-
         const card = document.createElement('div');
         card.className = "product-card bg-white rounded-3xl overflow-hidden cursor-pointer shadow hover:shadow-xl transition-all";
-
         card.innerHTML = `
             <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-64 object-cover bg-gray-200">
             <div class="p-6">
@@ -839,26 +799,84 @@ function renderProducts(containerId, list, append = false) {
                 <p class="text-sm text-gray-600 mt-2">📍 ${product.seller_location || 'Malawi'}</p>
                 <div class="mt-6 flex gap-3" onclick="event.stopImmediatePropagation()">
                     <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'phone')" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
-                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'whatsapp')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm">
-                        <i class="fa-brands fa-whatsapp"></i> WhatsApp
-                    </button>
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${product.id}', 'whatsapp')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
                 </div>
             </div>
         `;
-
         card.addEventListener('click', (e) => {
             if (!e.target.closest('button')) showProductDetail(product.id);
         });
-
         container.appendChild(card);
     });
 }
 
+function renderServicesPaginated() {
+    const container = document.getElementById('services-grid');
+    if (!container) return;
+    if (servicesPage === 1) container.innerHTML = '';
+
+    const start = (servicesPage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const pageItems = currentFilteredServices.slice(start, end);
+
+    pageItems.forEach(item => {
+        const imageUrl = getFirstImage(item.images);
+        const subCategoryHTML = item.sub_category ? `<span class="inline-block mt-2 px-4 py-1 bg-blue-100 text-blue-700 text-sm font-medium rounded-3xl">${item.sub_category}</span>` : '';
+
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl overflow-hidden shadow hover:shadow-xl cursor-pointer transition-all";
+        card.innerHTML = `
+            <img src="${imageUrl}" onerror="this.src='https://picsum.photos/id/1015/400/300'" class="w-full h-56 object-cover bg-gray-200">
+            <div class="p-6">
+                <h4 class="font-semibold text-lg">${item.title}</h4>
+                ${subCategoryHTML}
+                <p class="text-blue-600 font-bold text-2xl mt-3">K ${Number(item.price).toLocaleString()}</p>
+                <p class="text-sm text-gray-500 mt-1">📍 ${item.seller_location || 'Malawi'}</p>
+                <p class="text-gray-600 mt-4 line-clamp-3">${item.description || ''}</p>
+                <div class="mt-6 flex gap-3">
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'phone')" class="flex-1 py-3 bg-gray-100 hover:bg-gray-200 rounded-2xl text-sm">📞 Call</button>
+                    <button onclick="event.stopImmediatePropagation(); contactSeller('${item.id}', 'whatsapp')" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white rounded-2xl text-sm"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                </div>
+            </div>
+        `;
+        card.addEventListener('click', () => showProductDetail(item.id));
+        container.appendChild(card);
+    });
+
+    updateLoadMoreButton('load-more-services-btn', currentFilteredServices);
+}
+
+function updateLoadMoreButton(btnId, filteredArray) {
+    const loadBtn = document.getElementById(btnId);
+    if (!loadBtn) return;
+    const currentPage = (btnId === 'load-more-btn') ? marketplacePage : servicesPage;
+    const hasMore = (currentPage * PAGE_SIZE) < filteredArray.length;
+    loadBtn.style.display = hasMore ? 'block' : 'none';
+}
+
+function renderServicesPaginatedWithData(data) {
+    currentFilteredServices = data || [];
+    servicesPage = 1;
+    renderServicesPaginated();
+}
+
+function loadMoreMarketplace() {
+    marketplacePage++;
+    const start = (marketplacePage - 1) * PAGE_SIZE;
+    const end = start + PAGE_SIZE;
+    const newItems = currentFilteredProducts.slice(start, end);
+    if (newItems.length > 0) renderProducts('marketplace-grid', newItems, true);
+    updateLoadMoreButton('load-more-btn', currentFilteredProducts);
+}
+
+function loadMoreServices() {
+    servicesPage++;
+    renderServicesPaginated();
+}
+
 // ==================== PRODUCT DETAIL ====================
 function showProductDetail(id) {
-    currentProduct = allProducts.find(p => String(p.id) === String(id)) || 
-                     allServices.find(s => String(s.id) === String(id));
-
+    currentProduct = allProducts.find(p => String(p.id) === String(id)) || allServices.find(s => String(s.id) === String(id));
     if (!currentProduct) return showToast("Item not found.", "error");
 
     document.getElementById('detail-title').textContent = currentProduct.title;
@@ -872,9 +890,7 @@ function showProductDetail(id) {
     if (typeof images === 'string') {
         try { images = JSON.parse(images); } catch(e) { images = images ? [images] : []; }
     }
-    if (!Array.isArray(images) || images.length === 0) {
-        images = ["https://picsum.photos/id/1015/800/600"];
-    }
+    if (!Array.isArray(images) || images.length === 0) images = ["https://picsum.photos/id/1015/800/600"];
 
     images.forEach(src => {
         if (!src) return;
@@ -913,8 +929,7 @@ function closeImageZoom() {
 }
 
 function contactSeller(id, type) {
-    const product = allProducts.find(p => String(p.id) === String(id)) || 
-                    allServices.find(s => String(s.id) === String(id));
+    const product = allProducts.find(p => String(p.id) === String(id)) || allServices.find(s => String(s.id) === String(id));
     if (!product) return;
 
     const phone = product.seller_phone || '';
@@ -966,7 +981,8 @@ async function performLogin() {
     const username = document.getElementById('login-username')?.value.trim();
     const password = document.getElementById('login-password')?.value.trim();
 
-    if (username === '0883944589' && password === 'Waiyatsa1651') {
+    // ADMIN LOGIN
+    if (username === '0992961209' && password === 'Waiyatsa1651') {
         currentUser = { role: 'admin', name: "Macmillan Waiyatsa", id: 'admin' };
         hideButtonLoading(btnId);
         finishLogin();
@@ -1006,8 +1022,11 @@ function finishLogin() {
     hideLoginModal();
     showToast("Login successful!", "success");
 
-    if (currentUser.role === 'admin') showAdminDashboard();
-    else showSellerDashboard();
+    if (currentUser.role === 'admin') {
+        showAdminDashboard();
+    } else {
+        showSellerDashboard();
+    }
 }
 
 async function checkAuthState() {
@@ -1074,5 +1093,7 @@ window.onload = async () => {
 
     updateAuthUI(false);
     navigateTo('home');
-    console.log("✅ Simpo Malawi - Full JavaScript with Edit & Image Fixes Loaded");
+    setupMobileSwipe();
+
+    console.log("✅ Simpo Malawi - Full JS with Admin-Only Dashboard Fix Loaded");
 };
