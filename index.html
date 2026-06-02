@@ -149,39 +149,7 @@
     </div>
 </nav>
 
-<!-- ==================== X-STYLE MOBILE BOTTOM BAR ==================== -->
-<div id="mobile-bottom-bar" class="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 z-50 md:hidden shadow-2xl">
-    <div class="flex items-center justify-around py-3 px-2 max-w-md mx-auto">
-        
-        <a href="#" onclick="navigateTo('home'); activateBottomNav(this)" 
-           class="bottom-nav-item flex flex-col items-center text-white py-2 px-4 active">
-            <i class="fa-solid fa-house text-2xl"></i>
-        </a>
-        
-        <a href="#" onclick="navigateTo('marketplace'); activateBottomNav(this)" 
-           class="bottom-nav-item flex flex-col items-center text-white py-2 px-4">
-            <i class="fa-solid fa-store text-2xl"></i>
-        </a>
-        
-        <a href="#" onclick="navigateTo('sell'); activateBottomNav(this)" 
-           class="bottom-nav-item flex flex-col items-center text-white py-2 px-4 -mt-8">
-            <div class="w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-xl border-4 border-black">
-                <i class="fa-solid fa-plus text-3xl text-white"></i>
-            </div>
-        </a>
-        
-        <a href="#" onclick="navigateTo('services'); activateBottomNav(this)" 
-           class="bottom-nav-item flex flex-col items-center text-white py-2 px-4">
-            <i class="fa-solid fa-wrench text-2xl"></i>
-        </a>
-        
-        <a href="#" onclick="showDashboard()" id="bottom-dashboard-btn" 
-           class="bottom-nav-item flex flex-col items-center text-white py-2 px-4">
-            <i class="fa-solid fa-user text-2xl"></i>
-        </a>
-    </div>
-</div>
-</div>
+
    <!-- ==================== LEFT SLIDING SIDEBAR ==================== -->
 <div id="sidebar-menu" class="fixed inset-y-0 left-0 w-80 bg-white shadow-2xl transform -translate-x-full transition-transform duration-300 ease-in-out z-[100] overflow-y-auto">
     
@@ -738,7 +706,7 @@
                 <h3 class="text-3xl font-bold">Login</h3>
                 <button onclick="hideLoginModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
             </div>
-            <input id="login-username" type="text" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-4">
+            <input id="login-username" type="text" placeholder="email or phone number" class="w-full p-5 border rounded-3xl mb-4">
             <input id="login-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-8">
             <button id="login-submit-btn" onclick="performLogin()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Login</button>
         </div>
@@ -752,7 +720,7 @@
                 <button onclick="hideSignupModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
             </div>
             <input id="signup-name" type="text" placeholder="Full Name" class="w-full p-5 border rounded-3xl mb-4">
-            <input id="signup-phone" type="tel" placeholder="Phone Number" class="w-full p-5 border rounded-3xl mb-6">
+            <input id="signup-phone" type="tel" placeholder="email or phone number" class="w-full p-5 border rounded-3xl mb-6">
             <input id="signup-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-6">
             <button id="signup-submit-btn" onclick="performSignup()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Create Account</button>
         </div>
