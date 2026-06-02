@@ -18,6 +18,8 @@ const PAGE_SIZE = 12;
 
 let touchStartX = 0;
 let touchEndX = 0;
+let lastScrollY = 0;
+let isScrollingDown = false;
 
 // ==================== TOAST NOTIFICATION ====================
 function showToast(message, type = 'success') {
@@ -60,6 +62,55 @@ async function initSupabase() {
     });
 }
 
+// ==================== MOBILE BOTTOM NAV (White + Auto Hide) ====================
+function setupBottomNav() {
+    let bottomNav = document.getElementById('mobile-bottom-nav');
+    if (!bottomNav) {
+        bottomNav = document.createElement('div');
+        bottomNav.id = 'mobile-bottom-nav';
+        bottomNav.className = `fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[100] md:hidden transition-transform duration-300 flex items-center justify-around py-2 shadow-[0_-4px_15px_rgba(0,0,0,0.12)]`;
+        
+        bottomNav.innerHTML = `
+            <button onclick="navigateTo('home'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700 active">
+                <i class="fa-solid fa-house text-2xl"></i>
+                <span class="text-[10px] mt-1">Home</span>
+            </button>
+            <button onclick="navigateTo('marketplace'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-store text-2xl"></i>
+                <span class="text-[10px] mt-1">Market</span>
+            </button>
+            <button onclick="navigateTo('services'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-handshake text-2xl"></i>
+                <span class="text-[10px] mt-1">Services</span>
+            </button>
+            <button onclick="navigateTo('sell'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-plus-circle text-3xl text-blue-600 -mt-1"></i>
+            </button>
+            <button onclick="showDashboard(); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700" id="bottom-dashboard-btn">
+                <i class="fa-solid fa-user text-2xl"></i>
+                <span class="text-[10px] mt-1">Me</span>
+            </button>
+        `;
+        document.body.appendChild(bottomNav);
+    }
+
+    // Auto hide on scroll (like X app)
+    window.addEventListener('scroll', () => {
+        if (!bottomNav) return;
+        const currentScrollY = window.scrollY;
+        
+        if (currentScrollY > lastScrollY && currentScrollY > 100) {
+            bottomNav.style.transform = 'translateY(100%)';
+            isScrollingDown = true;
+        } else {
+            bottomNav.style.transform = 'translateY(0)';
+            isScrollingDown = false;
+        }
+        lastScrollY = currentScrollY;
+    });
+}
+
+
 // ==================== MOBILE SWIPE NAVIGATION ====================
 function setupMobileSwipe() {
     const mainContent = document.getElementById('main-content') || document.body;
@@ -88,9 +139,9 @@ function handleSwipe() {
 }
 
 function getCurrentVisiblePage() {
-    if (document.getElementById('home-section').style.display !== 'none') return 'home';
-    if (document.getElementById('marketplace-section').style.display !== 'none') return 'marketplace';
-    if (document.getElementById('services-section').style.display !== 'none') return 'services';
+    if (document.getElementById('home-section')?.style.display !== 'none') return 'home';
+    if (document.getElementById('marketplace-section')?.style.display !== 'none') return 'marketplace';
+    if (document.getElementById('services-section')?.style.display !== 'none') return 'services';
     return 'home';
 }
 
@@ -211,15 +262,19 @@ function getFirstImage(images) {
     return 'https://picsum.photos/id/1015/400/300';
 }
 
-// ==================== SUB SERVICES ====================
+// ==================== EXPANDED SUB CATEGORIES ====================
 const subServicesList = {
     "Cleaning": ["Home Cleaning", "Office Cleaning", "Car Wash"],
-    "Repair": ["Plumbing", "Electrical", "Carpentry", "Appliance Repair"],
-    "Tutoring": ["Mathematics", "English", "Sciences", "Business"],
-    "Beauty": ["Hair Dressing", "Makeup", "Nail Care", "Massage"],
-    "Transport": ["Taxi", "Delivery", "Moving Services", "Airport Transfer"],
+    "Repair": ["Plumbing", "Electrical", "Carpentry", "Appliance Repair", "Phone Repair"],
+    "Tutoring": ["Mathematics", "English", "Sciences", "Business", "Computer Skills"],
+    "Beauty": ["Hair Dressing", "Makeup", "Nail Care", "Massage", "Barber"],
+    "Transport": ["Taxi", "Delivery"],
     "Photography": ["Event Photography", "Product Photography", "Portrait"],
-    "Event": ["DJ Services", "Catering", "Decoration"]
+    "Event": ["DJ Services", "Catering", "Decoration", "MC Services"],
+    "Rent": ["House Rent", "Car Hire", "Office Space", "Event Venue", "Camera Equipment"],
+    "Real Estate": ["Land Sale", "House Sale", "Property Management"],
+    "Agriculture": ["Farm Labour", "Veterinary Services", "Crop Spraying"],
+    "Tech": ["Website Design", "Graphic Design", "Phone Setup", "Software Installation", "Networking"]
 };
 
 function toggleSubServiceField() {
@@ -229,7 +284,7 @@ function toggleSubServiceField() {
 
     if (listingType === 'service') {
         container.classList.remove('hidden');
-        select.innerHTML = '<option value="">Select Sub Service</option>';
+        select.innerHTML = '<option value="">Select Sub Category</option>';
         Object.keys(subServicesList).forEach(cat => {
             const group = document.createElement('optgroup');
             group.label = cat;
@@ -246,6 +301,36 @@ function toggleSubServiceField() {
     }
 }
 
+// ==================== PROFILE PICTURE UPLOAD ====================
+async function uploadProfilePicture(file) {
+    if (!currentUser) return showToast("Please login first", "error");
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `profile-${currentUser.id}-${Date.now()}.${fileExt}`;
+
+        const { error } = await supabaseClient.storage.from('profiles').upload(fileName, file, { upsert: true });
+        if (error) throw error;
+
+        const { data: { publicUrl } } = supabaseClient.storage.from('profiles').getPublicUrl(fileName);
+
+        await supabaseClient.auth.updateUser({ data: { avatar_url: publicUrl } });
+
+        currentUser.avatar_url = publicUrl;
+        const avatarImg = document.getElementById('seller-avatar');
+        if (avatarImg) avatarImg.src = publicUrl;
+
+        showToast("Profile picture updated!", "success");
+    } catch (err) {
+        console.error(err);
+        showToast("Failed to upload profile picture", "error");
+    }
+}
+
+function setupProfileUpload() {
+    const input = document.getElementById('profile-pic-input');
+    if (input) input.onchange = e => e.target.files[0] && uploadProfilePicture(e.target.files[0]);
+}
+
 // ==================== NAVIGATION ====================
 function navigateTo(page) {
     document.querySelectorAll('section').forEach(sec => sec.style.display = 'none');
@@ -254,22 +339,16 @@ function navigateTo(page) {
         document.getElementById('home-section').style.display = 'block';
         renderTrending();
         renderHomeServices();
-    } 
-    else if (page === 'services') {
+    } else if (page === 'services') {
         document.getElementById('services-section').style.display = 'block';
         servicesPage = 1;
         filterServices();
-    } 
-    else if (page === 'marketplace') {
+    } else if (page === 'marketplace') {
         document.getElementById('marketplace-section').style.display = 'block';
         marketplacePage = 1;
         filterMarketplace();
-    } 
-    else if (page === 'sell') {
+    } else if (page === 'sell') {
         showPostListingModal();
-    } 
-    else if (page === 'help') {
-        openWhatsAppForRequest();
     }
 }
 
@@ -284,35 +363,20 @@ function updateAuthUI(isLoggedIn, username = "", role = "") {
     const loggedInSection = document.getElementById('sidebar-logged-in');
     const loggedOutSection = document.getElementById('sidebar-logged-out');
     const adminLink = document.getElementById('sidebar-admin-link');
-    const bottomDashboardBtn = document.getElementById('bottom-dashboard-btn');
 
     if (isLoggedIn) {
-        document.getElementById('sidebar-username').textContent = username;
+        document.getElementById('sidebar-username').textContent = username || "User";
         document.getElementById('sidebar-role').textContent = role || "Member";
 
         if (userInfo) userInfo.classList.remove('hidden');
         if (loggedInSection) loggedInSection.classList.remove('hidden');
         if (loggedOutSection) loggedOutSection.classList.add('hidden');
-
-        if (role === 'admin') {
-            if (adminLink) adminLink.classList.remove('hidden');
-            if (bottomDashboardBtn) {
-                bottomDashboardBtn.classList.remove('hidden');
-                bottomDashboardBtn.onclick = () => showAdminDashboard();
-            }
-        } else {
-            if (adminLink) adminLink.classList.add('hidden');
-            if (bottomDashboardBtn) {
-                bottomDashboardBtn.classList.remove('hidden');
-                bottomDashboardBtn.onclick = () => showSellerDashboard();
-            }
-        }
+        if (adminLink) adminLink.classList.toggle('hidden', role !== 'admin');
     } else {
         if (userInfo) userInfo.classList.add('hidden');
         if (loggedInSection) loggedInSection.classList.add('hidden');
         if (loggedOutSection) loggedOutSection.classList.remove('hidden');
         if (adminLink) adminLink.classList.add('hidden');
-        if (bottomDashboardBtn) bottomDashboardBtn.classList.add('hidden');
     }
 }
 
@@ -325,6 +389,167 @@ function updateProfileUI() {
     } else {
         if (loginBtn) loginBtn.classList.remove('hidden');
         if (dashboardContainer) dashboardContainer.classList.add('hidden');
+    }
+}
+
+// ==================== AUTH FUNCTIONS (Phone + Email + Social) ====================
+
+async function performSignup() {
+    const btnId = 'signup-submit-btn';
+    showButtonLoading(btnId, 'Creating account...');
+
+    const name = document.getElementById('signup-name')?.value.trim();
+    const identifier = document.getElementById('signup-identifier')?.value.trim(); // Email or Phone
+    const password = document.getElementById('signup-password')?.value.trim();
+
+    if (!name || !identifier || !password) {
+        hideButtonLoading(btnId);
+        return showToast("All fields are required", "error");
+    }
+
+    let email = identifier;
+
+    // Convert phone number to fake email for Supabase
+    if (/^[0-9+\s-]+$/.test(identifier)) {
+        const cleanPhone = identifier.replace(/[^0-9]/g, '');
+        email = `user.${cleanPhone}@malawimarket.local`;
+    }
+
+    try {
+        const { error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    full_name: name,
+                    phone: identifier,
+                    role: 'seller'
+                }
+            }
+        });
+
+        hideButtonLoading(btnId);
+
+        if (error) {
+            showToast("Signup failed: " + error.message, "error");
+        } else {
+            showToast("Account created! You can now login.", "success");
+            hideSignupModal();
+            showLoginModal();
+        }
+    } catch (err) {
+        hideButtonLoading(btnId);
+        showToast("Signup error occurred", "error");
+    }
+}
+
+async function performLogin() {
+    const btnId = 'login-submit-btn';
+    showButtonLoading(btnId, 'Logging in...');
+
+    const identifier = document.getElementById('login-identifier')?.value.trim();
+    const password = document.getElementById('login-password')?.value.trim();
+
+    // Admin Login
+    if (identifier === '0992961209' && password === 'Waiyatsa1651') {
+        currentUser = { role: 'admin', name: "Macmillan Waiyatsa", id: 'admin' };
+        hideButtonLoading(btnId);
+        finishLogin();
+        return;
+    }
+
+    if (!identifier || !password) {
+        hideButtonLoading(btnId);
+        return showToast("Email/Phone and password required", "error");
+    }
+
+    let email = identifier;
+
+    // Convert phone to fake email
+    if (/^[0-9+\s-]+$/.test(identifier)) {
+        const cleanPhone = identifier.replace(/[^0-9]/g, '');
+        email = `user.${cleanPhone}@malawimarket.local`;
+    }
+
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        hideButtonLoading(btnId);
+
+        if (error) {
+            showToast("Login failed: " + error.message, "error");
+        } else {
+            currentUser = {
+                role: data.user?.user_metadata?.role || 'seller',
+                name: data.user?.user_metadata?.full_name || identifier,
+                id: data.user.id,
+                avatar_url: data.user?.user_metadata?.avatar_url
+            };
+            finishLogin();
+        }
+    } catch (err) {
+        hideButtonLoading(btnId);
+        showToast("Login error", "error");
+    }
+}
+
+// ==================== SOCIAL LOGIN ====================
+async function signInWithProvider(provider) {
+    try {
+        showToast(`Connecting with ${provider}...`, "success");
+        
+        const { error } = await supabaseClient.auth.signInWithOAuth({
+            provider: provider,
+            options: {
+                redirectTo: window.location.origin + window.location.pathname
+            }
+        });
+
+        if (error) showToast(error.message, "error");
+    } catch (err) {
+        showToast(`Failed to login with ${provider}`, "error");
+    }
+}
+
+// Finish Login
+function finishLogin() {
+    updateAuthUI(true, currentUser.name, currentUser.role);
+    updateProfileUI();
+    hideLoginModal();
+    showToast("Login successful!", "success");
+
+    if (currentUser.role === 'admin') {
+        showAdminDashboard();
+    } else {
+        showSellerDashboard();
+    }
+}
+
+async function checkAuthState() {
+    if (!supabaseClient) return;
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (session?.user) {
+        currentUser = {
+            role: session.user.user_metadata?.role || 'seller',
+            name: session.user.user_metadata?.full_name || session.user.email,
+            id: session.user.id,
+            avatar_url: session.user.user_metadata?.avatar_url
+        };
+        finishLogin();
+    }
+}
+
+async function logout() {
+    if (confirm("Are you sure you want to log out?")) {
+        await supabaseClient.auth.signOut();
+        currentUser = null;
+        updateAuthUI(false);
+        updateProfileUI();
+        location.reload();
     }
 }
 
@@ -423,7 +648,7 @@ async function uploadImagesToStorage() {
     return imageUrls;
 }
 
-// ==================== SUBMIT / UPDATE LISTING ====================
+// ==================== SUBMIT LISTING ====================
 async function submitListing() {
     const btnId = 'submit-listing-btn';
     showButtonLoading(btnId, currentEditingId ? 'Updating...' : 'Submitting...');
@@ -506,21 +731,36 @@ function resetPostForm() {
     renderPreviews();
 
     document.getElementById('listing-type').value = 'item';
-    const fields = ['listing-title','listing-price','listing-desc','seller-location','seller-phone','seller-whatsapp'];
-    fields.forEach(id => {
+    ['listing-title','listing-price','listing-desc','seller-location','seller-phone','seller-whatsapp'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
 }
-
-// ==================== SELLER DASHBOARD ====================
+//===================SELLER DASHBOARD====================
 function showSellerDashboard() {
     if (currentUser && currentUser.role === 'admin') {
         return showAdminDashboard();
     }
+
     document.querySelectorAll('section').forEach(s => s.style.display = 'none');
     document.getElementById('seller-dashboard').style.display = 'block';
     document.getElementById('seller-name').textContent = currentUser?.name || 'Seller';
+
+    const avatarContainer = document.getElementById('seller-avatar-container');
+    if (avatarContainer && !avatarContainer.hasAttribute('data-setup')) {
+        avatarContainer.innerHTML = `
+            <label class="cursor-pointer block mx-auto w-fit">
+                <img id="seller-avatar" 
+                     src="${currentUser?.avatar_url || 'https://picsum.photos/id/64/128/128'}" 
+                     class="w-28 h-28 rounded-3xl object-cover border-4 border-white shadow-lg">
+                <input type="file" id="profile-pic-input" accept="image/*" class="hidden">
+                <p class="text-center text-blue-600 text-sm mt-3">Change Profile Photo</p>
+            </label>
+        `;
+        avatarContainer.setAttribute('data-setup', 'true');
+        setupProfileUpload();
+    }
+
     loadMyListings();
     loadSellerStats();
 }
@@ -528,6 +768,7 @@ function showSellerDashboard() {
 async function loadSellerStats() {
     if (!currentUser || currentUser.role === 'admin') return;
     const { data } = await supabaseClient.from('listings').select('status').eq('seller_id', currentUser.id);
+    
     const total = data ? data.length : 0;
     const pending = data ? data.filter(l => l.status === 'pending').length : 0;
     const approved = data ? data.filter(l => l.status === 'approved').length : 0;
@@ -541,16 +782,31 @@ async function loadSellerStats() {
 
 async function loadMyListings() {
     if (!currentUser || currentUser.role === 'admin') return;
-    const { data } = await supabaseClient.from('listings').select('*').eq('seller_id', currentUser.id).order('created_at', { ascending: false });
+
+    const { data } = await supabaseClient
+        .from('listings')
+        .select('*')
+        .eq('seller_id', currentUser.id)
+        .order('created_at', { ascending: false });
+
     const container = document.getElementById('my-listings-container');
     container.innerHTML = '';
 
     if (!data || data.length === 0) {
-        container.innerHTML = `<div class="text-center py-16"><i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i><p class="text-gray-500">You haven't posted any listings yet.</p><button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">Post Your First Listing</button></div>`;
+        container.innerHTML = `
+            <div class="text-center py-16">
+                <i class="fa-solid fa-box-open text-6xl text-gray-300 mb-4"></i>
+                <p class="text-gray-500">You haven't posted any listings yet.</p>
+                <button onclick="showPostListingModal()" class="mt-6 px-8 py-3 bg-blue-600 text-white rounded-3xl hover:bg-blue-700">
+                    Post Your First Listing
+                </button>
+            </div>`;
         return;
     }
 
     data.forEach(listing => {
+        const isPending = listing.status === 'pending';
+        
         const div = document.createElement('div');
         div.className = "border border-gray-100 rounded-3xl p-5 sm:p-6 bg-white flex flex-col sm:flex-row gap-5 hover:shadow-md transition-all";
         div.innerHTML = `
@@ -560,14 +816,32 @@ async function loadMyListings() {
                 <p class="text-blue-700 font-bold text-xl mt-2">K ${Number(listing.price).toLocaleString()}</p>
                 <p class="text-sm text-gray-500 mt-1">${listing.seller_location || 'Malawi'}</p>
                 <div class="mt-4">
-                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}">
+                    <span class="inline-block px-4 py-1 text-xs font-medium rounded-full 
+                        ${listing.status === 'approved' ? 'bg-green-100 text-green-700' : 
+                          listing.status === 'sold' ? 'bg-emerald-100 text-emerald-700' : 
+                          'bg-amber-100 text-amber-700'}">
                         ${listing.status ? listing.status.toUpperCase() : 'PENDING'}
                     </span>
                 </div>
             </div>
             <div class="flex flex-col justify-between items-end gap-3">
-                <button onclick="editListing('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-2xl">Edit</button>
-                ${listing.status !== 'sold' ? `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">Mark as Sold</button>` : `<span class="text-emerald-600 font-semibold">✓ Sold</span>`}
+                ${isPending ? 
+                    `<button onclick="editListing('${listing.id}'); event.stopImmediatePropagation()" 
+                        class="px-6 py-2.5 bg-gray-600 hover:bg-gray-700 text-white text-sm font-medium rounded-2xl">
+                        Edit
+                    </button>` : 
+                    `<button disabled class="px-6 py-2.5 bg-gray-300 text-gray-500 text-sm font-medium rounded-2xl cursor-not-allowed">
+                        Edit
+                    </button>`
+                }
+                
+                ${listing.status !== 'sold' ? 
+                    `<button onclick="markAsSold('${listing.id}'); event.stopImmediatePropagation()" 
+                        class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl">
+                        Mark as Sold
+                    </button>` : 
+                    `<span class="text-emerald-600 font-semibold">✓ Sold</span>`
+                }
             </div>
         `;
         container.appendChild(div);
@@ -575,8 +849,22 @@ async function loadMyListings() {
 }
 
 async function editListing(id) {
-    const { data } = await supabaseClient.from('listings').select('*').eq('id', id).single();
-    if (data) showPostListingModal(data);
+    const { data, error } = await supabaseClient
+        .from('listings')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+    if (error || !data) {
+        return showToast("Listing not found", "error");
+    }
+
+    // Only allow editing if status is pending
+    if (data.status !== 'pending') {
+        return showToast("Only pending listings can be edited", "warning");
+    }
+
+    showPostListingModal(data);
 }
 
 // ==================== ADMIN DASHBOARD ====================
@@ -591,7 +879,6 @@ function showAdminDashboard() {
 async function loadAdminStats() {
     const { data } = await supabaseClient.from('listings').select('status, price');
     if (!data) return;
-    
     const pending = data.filter(l => l.status === 'pending').length;
     const live = data.filter(l => l.status === 'approved').length;
     const sold = data.filter(l => l.status === 'sold').length;
@@ -981,7 +1268,6 @@ async function performLogin() {
     const username = document.getElementById('login-username')?.value.trim();
     const password = document.getElementById('login-password')?.value.trim();
 
-    // ADMIN LOGIN
     if (username === '0992961209' && password === 'Waiyatsa1651') {
         currentUser = { role: 'admin', name: "Macmillan Waiyatsa", id: 'admin' };
         hideButtonLoading(btnId);
@@ -1084,25 +1370,15 @@ async function loadServices() {
     }
 }
 
-// Activate bottom nav item
 function activateBottomNav(el) {
-    document.querySelectorAll('.bottom-nav-item').forEach(item => {
-        item.classList.remove('active');
-    });
+    document.querySelectorAll('.bottom-nav-item').forEach(item => item.classList.remove('active'));
     if (el) el.classList.add('active');
 }
 
-// Show correct dashboard based on user role
 function showDashboard() {
-    if (!currentUser) {
-        showLoginModal();
-        return;
-    }
-    if (currentUser.role === 'admin') {
-        showAdminDashboard();
-    } else {
-        showSellerDashboard();
-    }
+    if (!currentUser) return showLoginModal();
+    if (currentUser.role === 'admin') showAdminDashboard();
+    else showSellerDashboard();
 }
 
 // ==================== START APPLICATION ====================
@@ -1115,6 +1391,8 @@ window.onload = async () => {
     updateAuthUI(false);
     navigateTo('home');
     setupMobileSwipe();
+    setupBottomNav();
+    setupLeftNav();
 
-    console.log("✅ Simpo Malawi - Full JS with Admin-Only Dashboard Fix Loaded");
+    console.log("✅ Simpo Malawi - Full JS v2 with All Fixes Loaded Successfully");
 };
