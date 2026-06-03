@@ -119,26 +119,36 @@ function setupBottomNav() {
     }, { passive: true });
 }
 
-// ==================== BOTTOM SEARCH (Fixed Version) ====================
+// ==================== BOTTOM SEARCH (Highly Responsive) ====================
 function showBottomSearch() {
     let overlay = document.getElementById('bottom-search-overlay');
+    
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'bottom-search-overlay';
-        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-16 md:pt-24`;
+        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-14 sm:pt-20 md:pt-24 pb-4`;
+        
         overlay.innerHTML = `
-            <div class="bg-white w-full max-w-lg mx-3 sm:mx-4 md:mx-auto rounded-3xl shadow-2xl overflow-hidden">
-                <div class="p-4 border-b flex items-center gap-3">
+            <div class="bg-white w-full max-w-md sm:max-w-lg mx-3 sm:mx-4 rounded-3xl shadow-2xl overflow-hidden 
+                        max-h-[85vh] sm:max-h-[80vh] flex flex-col">
+                
+                <!-- Search Header -->
+                <div class="p-4 border-b flex items-center gap-3 sticky top-0 bg-white z-10 rounded-t-3xl">
                     <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
                     <input 
                         id="bottom-search-input"
                         type="text" 
                         placeholder="Search products & services..." 
-                        class="flex-1 outline-none text-lg placeholder-gray-400"
+                        class="flex-1 outline-none text-base sm:text-lg placeholder-gray-400"
                         onkeyup="if(event.key === 'Enter') performBottomSearch()">
-                    <button onclick="hideBottomSearch()" class="text-gray-500 hover:text-gray-700 px-3 py-1 text-xl">✕</button>
+                    <button onclick="hideBottomSearch()" 
+                            class="text-gray-500 hover:text-gray-700 px-2 py-1 text-2xl leading-none">✕</button>
                 </div>
-                <div id="bottom-search-results" class="max-h-[65vh] sm:max-h-[70vh] overflow-auto p-2"></div>
+                
+                <!-- Results Area -->
+                <div id="bottom-search-results" 
+                     class="flex-1 overflow-auto p-2 sm:p-3">
+                </div>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -146,10 +156,12 @@ function showBottomSearch() {
 
     overlay.classList.remove('hidden');
     overlay.classList.add('flex');
+    
+    // Focus input after opening
     setTimeout(() => {
         const input = document.getElementById('bottom-search-input');
         if (input) input.focus();
-    }, 200);
+    }, 250);
 }
 
 function hideBottomSearch() {
@@ -160,13 +172,13 @@ function hideBottomSearch() {
     }
 }
 
-// Perform Search
+// Perform Search (No changes needed, just keeping it clean)
 function performBottomSearch() {
     const query = document.getElementById('bottom-search-input').value.trim().toLowerCase();
     const container = document.getElementById('bottom-search-results');
 
     if (!query) {
-        container.innerHTML = `<p class="text-center py-10 text-gray-500">Type to search...</p>`;
+        container.innerHTML = `<p class="text-center py-12 text-gray-500">Type to search...</p>`;
         return;
     }
 
@@ -186,10 +198,11 @@ function performBottomSearch() {
         html += `<p class="px-4 py-2 text-xs font-semibold text-blue-600">PRODUCTS</p>`;
         productResults.slice(0, 6).forEach(item => {
             html += `
-                <div onclick="selectSearchResult('${item.id}', 'product')" class="p-3 hover:bg-gray-50 rounded-2xl cursor-pointer flex gap-3">
+                <div onclick="selectSearchResult('${item.id}', 'product')" 
+                     class="p-3 hover:bg-gray-50 rounded-2xl cursor-pointer flex gap-3">
                     <img src="${getFirstImage(item.images)}" class="w-12 h-12 object-cover rounded-xl">
-                    <div>
-                        <p class="font-medium">${item.title}</p>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium line-clamp-1">${item.title}</p>
                         <p class="text-blue-600 font-bold">K ${Number(item.price).toLocaleString()}</p>
                     </div>
                 </div>`;
@@ -200,10 +213,11 @@ function performBottomSearch() {
         html += `<p class="px-4 py-2 text-xs font-semibold text-blue-600 mt-3">SERVICES</p>`;
         serviceResults.slice(0, 6).forEach(item => {
             html += `
-                <div onclick="selectSearchResult('${item.id}', 'service')" class="p-3 hover:bg-gray-50 rounded-2xl cursor-pointer flex gap-3">
+                <div onclick="selectSearchResult('${item.id}', 'service')" 
+                     class="p-3 hover:bg-gray-50 rounded-2xl cursor-pointer flex gap-3">
                     <img src="${getFirstImage(item.images)}" class="w-12 h-12 object-cover rounded-xl">
-                    <div>
-                        <p class="font-medium">${item.title}</p>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-medium line-clamp-1">${item.title}</p>
                         <p class="text-blue-600 font-bold">K ${Number(item.price).toLocaleString()}</p>
                     </div>
                 </div>`;
@@ -211,13 +225,12 @@ function performBottomSearch() {
     }
 
     if (!productResults.length && !serviceResults.length) {
-        html = `<p class="text-center py-12 text-gray-500">No results found</p>`;
+        html = `<p class="text-center py-16 text-gray-500">No results found</p>`;
     }
 
     container.innerHTML = html;
 }
 
-// Fixed Select Result
 function selectSearchResult(id, type) {
     hideBottomSearch();
 
