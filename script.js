@@ -125,9 +125,9 @@ function showBottomSearch() {
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'bottom-search-overlay';
-        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-20`;
+        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-16 md:pt-24`;
         overlay.innerHTML = `
-            <div class="bg-white w-full max-w-lg mx-4 rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-white w-full max-w-lg mx-3 sm:mx-4 md:mx-auto rounded-3xl shadow-2xl overflow-hidden">
                 <div class="p-4 border-b flex items-center gap-3">
                     <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
                     <input 
@@ -138,7 +138,7 @@ function showBottomSearch() {
                         onkeyup="if(event.key === 'Enter') performBottomSearch()">
                     <button onclick="hideBottomSearch()" class="text-gray-500 hover:text-gray-700 px-3 py-1 text-xl">✕</button>
                 </div>
-                <div id="bottom-search-results" class="max-h-[65vh] overflow-auto p-2"></div>
+                <div id="bottom-search-results" class="max-h-[65vh] sm:max-h-[70vh] overflow-auto p-2"></div>
             </div>
         `;
         document.body.appendChild(overlay);
@@ -146,7 +146,10 @@ function showBottomSearch() {
 
     overlay.classList.remove('hidden');
     overlay.classList.add('flex');
-    setTimeout(() => document.getElementById('bottom-search-input').focus(), 150);
+    setTimeout(() => {
+        const input = document.getElementById('bottom-search-input');
+        if (input) input.focus();
+    }, 200);
 }
 
 function hideBottomSearch() {
@@ -214,7 +217,7 @@ function performBottomSearch() {
     container.innerHTML = html;
 }
 
-// Fixed Select Result - Matches Desktop Behavior
+// Fixed Select Result
 function selectSearchResult(id, type) {
     hideBottomSearch();
 
@@ -236,7 +239,6 @@ function selectSearchResult(id, type) {
         renderServicesPaginated();
     }
 }
-
 // ==================== MOBILE SWIPE NAVIGATION ====================
 function setupMobileSwipe() {
     const mainContent = document.getElementById('main-content') || document.body;
