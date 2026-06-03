@@ -83,6 +83,13 @@ function setupBottomNav() {
                 <i class="fa-solid fa-handshake text-2xl"></i>
                 <span class="text-[10px] mt-1">Services</span>
             </button>
+            
+            <!-- SEARCH BUTTON -->
+            <button onclick="showBottomSearch()" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-magnifying-glass text-2xl"></i>
+                <span class="text-[10px] mt-1">Search</span>
+            </button>
+            
             <button onclick="navigateTo('sell'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
                 <i class="fa-solid fa-plus-circle text-3xl text-blue-600 -mt-1"></i>
             </button>
@@ -94,22 +101,174 @@ function setupBottomNav() {
         document.body.appendChild(bottomNav);
     }
 
-    // Auto hide on scroll (like X app)
+    // Auto hide on scroll
     window.addEventListener('scroll', () => {
         if (!bottomNav) return;
         const currentScrollY = window.scrollY;
         
         if (currentScrollY > lastScrollY && currentScrollY > 100) {
             bottomNav.style.transform = 'translateY(100%)';
-            isScrollingDown = true;
         } else {
             bottomNav.style.transform = 'translateY(0)';
-            isScrollingDown = false;
         }
         lastScrollY = currentScrollY;
     });
 }
 
+// ==================== MOBILE BOTTOM NAV ====================
+function setupBottomNav() {
+    let bottomNav = document.getElementById('mobile-bottom-nav');
+    if (!bottomNav) {
+        bottomNav = document.createElement('div');
+        bottomNav.id = 'mobile-bottom-nav';
+        bottomNav.className = `fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[100] md:hidden transition-transform duration-300 flex items-center justify-around py-2 shadow-[0_-4px_15px_rgba(0,0,0,0.12)]`;
+        
+        bottomNav.innerHTML = `
+            <button onclick="navigateTo('home'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700 active">
+                <i class="fa-solid fa-house text-2xl"></i>
+                <span class="text-[10px] mt-1">Home</span>
+            </button>
+            <button onclick="navigateTo('marketplace'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-store text-2xl"></i>
+                <span class="text-[10px] mt-1">Market</span>
+            </button>
+            <button onclick="navigateTo('services'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-handshake text-2xl"></i>
+                <span class="text-[10px] mt-1">Services</span>
+            </button>
+            <button onclick="showBottomSearch()" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-magnifying-glass text-2xl"></i>
+                <span class="text-[10px] mt-1">Search</span>
+            </button>
+            <button onclick="navigateTo('sell'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
+                <i class="fa-solid fa-plus-circle text-3xl text-blue-600 -mt-1"></i>
+            </button>
+            <button onclick="showDashboard(); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700" id="bottom-dashboard-btn">
+                <i class="fa-solid fa-user text-2xl"></i>
+                <span class="text-[10px] mt-1">Me</span>
+            </button>
+        `;
+        document.body.appendChild(bottomNav);
+    }
+}
+
+// ==================== BOTTOM SEARCH (Fixed Version) ====================
+function showBottomSearch() {
+    let overlay = document.getElementById('bottom-search-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'bottom-search-overlay';
+        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-20`;
+        overlay.innerHTML = `
+            <div class="bg-white w-full max-w-lg mx-4 rounded-3xl shadow-2xl overflow-hidden">
+                <div class="p-4 border-b flex items-center gap-3">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+                    <input 
+                        id="bottom-search-input"
+                        type="text" 
+                        placeholder="Search products & services..." 
+                        class="flex-1 outline-none text-lg placeholder-gray-400"
+                        onkeyup="if(event.key === 'Enter') performBottomSearch()">
+                    <button onclick="hideBottomSearch()" class="text-gray-500 hover:text-gray-700 px-3 py-1 text-xl">✕</button>
+                </div>
+                <div id="bottom-search-results" class="max-h-[65vh] overflow-auto p-2"></div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+    }
+
+    overlay.classList.remove('hidden');
+    overlay.classList.add('flex');
+    setTimeout(() => document.getElementById('bottom-search-input').focus(), 150);
+}
+
+function hideBottomSearch() {
+    const overlay = document.getElementById('bottom-search-overlay');
+    if (overlay) {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+    }
+}
+
+// Perform Search
+function performBottomSearch() {
+    const query = document.getElementById('bottom-search-input').value.trim().toLowerCase();
+    const container = document.getElementById('bottom-search-results');
+
+    if (!query) {
+        container.innerHTML = `<p class="text-center py-10 text-gray-500">Type to search...</p>`;
+        return;
+    }
+
+    const productResults = allProducts.filter(p => 
+        (p.title || '').toLowerCase().includes(query) || 
+        (p.description || '').toLowerCase().includes(query)
+    );
+
+    const serviceResults = allServices.filter(s => 
+        (s.title || '').toLowerCase().includes(query) || 
+        (s.description || '').toLowerCase().includes(query)
+    );
+
+    let html = '';
+
+    if (productResults.length) {
+        html += `<p class="px-4 py-2 text-xs font-semibold text-blue-600">PRODUCTS</p>`;
+        productResults.slice(0, 6).forEach(item => {
+            html += `
+                <div onclick="selectSearchResult('${item.id}', 'product')" class="p-3 hover:bg-gray-50 rounded-2xl cursor-pointer flex gap-3">
+                    <img src="${getFirstImage(item.images)}" class="w-12 h-12 object-cover rounded-xl">
+                    <div>
+                        <p class="font-medium">${item.title}</p>
+                        <p class="text-blue-600 font-bold">K ${Number(item.price).toLocaleString()}</p>
+                    </div>
+                </div>`;
+        });
+    }
+
+    if (serviceResults.length) {
+        html += `<p class="px-4 py-2 text-xs font-semibold text-blue-600 mt-3">SERVICES</p>`;
+        serviceResults.slice(0, 6).forEach(item => {
+            html += `
+                <div onclick="selectSearchResult('${item.id}', 'service')" class="p-3 hover:bg-gray-50 rounded-2xl cursor-pointer flex gap-3">
+                    <img src="${getFirstImage(item.images)}" class="w-12 h-12 object-cover rounded-xl">
+                    <div>
+                        <p class="font-medium">${item.title}</p>
+                        <p class="text-blue-600 font-bold">K ${Number(item.price).toLocaleString()}</p>
+                    </div>
+                </div>`;
+        });
+    }
+
+    if (!productResults.length && !serviceResults.length) {
+        html = `<p class="text-center py-12 text-gray-500">No results found</p>`;
+    }
+
+    container.innerHTML = html;
+}
+
+// Fixed Select Result - Matches Desktop Behavior
+function selectSearchResult(id, type) {
+    hideBottomSearch();
+
+    const item = type === 'product' 
+        ? allProducts.find(p => String(p.id) === String(id))
+        : allServices.find(s => String(s.id) === String(id));
+
+    if (!item) return;
+
+    if (type === 'product') {
+        navigateTo('marketplace');
+        currentFilteredProducts = [item];   // Show only selected item
+        marketplacePage = 1;
+        renderProducts('marketplace-grid', currentFilteredProducts);
+    } else {
+        navigateTo('services');
+        currentFilteredServices = [item];   // Show only selected item
+        servicesPage = 1;
+        renderServicesPaginated();
+    }
+}
 
 // ==================== MOBILE SWIPE NAVIGATION ====================
 function setupMobileSwipe() {
@@ -149,29 +308,68 @@ function getCurrentVisiblePage() {
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar-menu');
     const overlay = document.getElementById('sidebar-overlay');
+    const bottomNav = document.getElementById('mobile-bottom-nav');
+    
     if (!sidebar || !overlay) return;
 
     if (sidebar.classList.contains('-translate-x-full')) {
+        // OPEN SIDEBAR
         sidebar.classList.remove('-translate-x-full');
         overlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+
+        // Hide bottom nav when sidebar opens
+        if (bottomNav) bottomNav.style.transform = 'translateY(100%)';
+
+        // Close any open modals
+        closeAllModals();
     } else {
+        // CLOSE SIDEBAR
         sidebar.classList.add('-translate-x-full');
         overlay.classList.add('hidden');
         document.body.style.overflow = 'visible';
+
+        // Restore bottom nav
+        if (bottomNav) bottomNav.style.transform = 'translateY(0)';
+    }
+}
+
+// New function: Close sidebar then navigate (for all sidebar menu items)
+function closeSidebarAndNavigate(page) {
+    // First close the sidebar
+    const sidebar = document.getElementById('sidebar-menu');
+    const overlay = document.getElementById('sidebar-overlay');
+    
+    if (sidebar) sidebar.classList.add('-translate-x-full');
+    if (overlay) overlay.classList.add('hidden');
+    document.body.style.overflow = 'visible';
+
+    // Restore bottom nav
+    const bottomNav = document.getElementById('mobile-bottom-nav');
+    if (bottomNav) bottomNav.style.transform = 'translateY(0)';
+
+    // Now perform navigation
+    if (page === 'sell') {
+        showPostListingModal();
+    } else {
+        navigateTo(page);
     }
 }
 
 // ==================== MODALS ====================
 function showLoginModal() {
-    toggleSidebar();
+    toggleSidebar(); 
     const modal = document.getElementById('login-modal');
     if (modal) modal.classList.remove('hidden').classList.add('flex');
 }
 
 function hideLoginModal() {
     const modal = document.getElementById('login-modal');
-    if (modal) modal.classList.add('hidden').classList.remove('flex');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    showBottomNav();
 }
 
 function showSignupModal() {
@@ -182,15 +380,27 @@ function showSignupModal() {
 
 function hideSignupModal() {
     const modal = document.getElementById('signup-modal');
-    if (modal) modal.classList.add('hidden').classList.remove('flex');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+    showBottomNav();
 }
 
+// ==================== POST LISTING MODAL (FIXED) ====================
 function showPostListingModal(editListing = null) {
+    closeAllModals();
+    
     const modal = document.getElementById('post-listing-modal');
-    if (!modal) return;
+    if (!modal) {
+        console.error("Post listing modal not found in HTML");
+        return showToast("Modal not found. Check HTML ID.", "error");
+    }
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
 
     currentEditingId = editListing ? editListing.id : null;
-    modal.classList.remove('hidden').classList.add('flex');
     resetPostForm();
 
     if (editListing) {
@@ -222,6 +432,8 @@ function showPostListingModal(editListing = null) {
         document.getElementById('submit-listing-btn').textContent = 'Submit Listing';
         toggleSubServiceField();
     }
+
+    hideBottomNav();
 }
 
 function hidePostListingModal() {
@@ -231,6 +443,24 @@ function hidePostListingModal() {
         modal.classList.remove('flex');
     }
     currentEditingId = null;
+    showBottomNav();
+}
+
+// ==================== PASSWORD TOGGLE (Show/Hide) ====================
+function togglePasswordVisibility(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
+
+    if (input.type === "password") {
+        input.type = "text";
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = "password";
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
 }
 
 // ==================== HELPERS ====================
@@ -260,6 +490,27 @@ function getFirstImage(images) {
         } catch (e) { return images; }
     }
     return 'https://picsum.photos/id/1015/400/300';
+}
+
+// Close all modals helper
+function closeAllModals() {
+    document.querySelectorAll('#login-modal, #signup-modal, #post-listing-modal, #product-detail-modal, #image-zoom-modal').forEach(modal => {
+        if (modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+    });
+}
+
+// Bottom Nav Helpers
+function hideBottomNav() {
+    const bottomNav = document.getElementById('mobile-bottom-nav');
+    if (bottomNav) bottomNav.style.transform = 'translateY(100%)';
+}
+
+function showBottomNav() {
+    const bottomNav = document.getElementById('mobile-bottom-nav');
+    if (bottomNav) bottomNav.style.transform = 'translateY(0)';
 }
 
 // ==================== EXPANDED SUB CATEGORIES ====================
@@ -392,14 +643,14 @@ function updateProfileUI() {
     }
 }
 
-// ==================== AUTH FUNCTIONS (Phone + Email + Social) ====================
+// ==================== AUTH FUNCTIONS ====================
 
 async function performSignup() {
     const btnId = 'signup-submit-btn';
     showButtonLoading(btnId, 'Creating account...');
 
     const name = document.getElementById('signup-name')?.value.trim();
-    const identifier = document.getElementById('signup-identifier')?.value.trim(); // Email or Phone
+    const identifier = document.getElementById('signup-phone')?.value.trim();   // Fixed to match HTML
     const password = document.getElementById('signup-password')?.value.trim();
 
     if (!name || !identifier || !password) {
@@ -447,7 +698,7 @@ async function performLogin() {
     const btnId = 'login-submit-btn';
     showButtonLoading(btnId, 'Logging in...');
 
-    const identifier = document.getElementById('login-identifier')?.value.trim();
+    const identifier = document.getElementById('login-username')?.value.trim();  // Fixed to match HTML
     const password = document.getElementById('login-password')?.value.trim();
 
     // Admin Login
