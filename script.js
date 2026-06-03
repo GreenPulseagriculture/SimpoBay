@@ -101,55 +101,22 @@ function setupBottomNav() {
         document.body.appendChild(bottomNav);
     }
 
-    // Auto hide on scroll
+    // === FIXED AUTO HIDE ON SCROLL ===
+    let lastScrollY = window.scrollY || 0;
+
     window.addEventListener('scroll', () => {
         if (!bottomNav) return;
-        const currentScrollY = window.scrollY;
         
+        const currentScrollY = window.scrollY;
+
         if (currentScrollY > lastScrollY && currentScrollY > 100) {
             bottomNav.style.transform = 'translateY(100%)';
         } else {
             bottomNav.style.transform = 'translateY(0)';
         }
-        lastScrollY = currentScrollY;
-    });
-}
 
-// ==================== MOBILE BOTTOM NAV ====================
-function setupBottomNav() {
-    let bottomNav = document.getElementById('mobile-bottom-nav');
-    if (!bottomNav) {
-        bottomNav = document.createElement('div');
-        bottomNav.id = 'mobile-bottom-nav';
-        bottomNav.className = `fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-[100] md:hidden transition-transform duration-300 flex items-center justify-around py-2 shadow-[0_-4px_15px_rgba(0,0,0,0.12)]`;
-        
-        bottomNav.innerHTML = `
-            <button onclick="navigateTo('home'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700 active">
-                <i class="fa-solid fa-house text-2xl"></i>
-                <span class="text-[10px] mt-1">Home</span>
-            </button>
-            <button onclick="navigateTo('marketplace'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
-                <i class="fa-solid fa-store text-2xl"></i>
-                <span class="text-[10px] mt-1">Market</span>
-            </button>
-            <button onclick="navigateTo('services'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
-                <i class="fa-solid fa-handshake text-2xl"></i>
-                <span class="text-[10px] mt-1">Services</span>
-            </button>
-            <button onclick="showBottomSearch()" class="bottom-nav-item flex flex-col items-center text-gray-700">
-                <i class="fa-solid fa-magnifying-glass text-2xl"></i>
-                <span class="text-[10px] mt-1">Search</span>
-            </button>
-            <button onclick="navigateTo('sell'); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700">
-                <i class="fa-solid fa-plus-circle text-3xl text-blue-600 -mt-1"></i>
-            </button>
-            <button onclick="showDashboard(); activateBottomNav(this)" class="bottom-nav-item flex flex-col items-center text-gray-700" id="bottom-dashboard-btn">
-                <i class="fa-solid fa-user text-2xl"></i>
-                <span class="text-[10px] mt-1">Me</span>
-            </button>
-        `;
-        document.body.appendChild(bottomNav);
-    }
+        lastScrollY = currentScrollY;
+    }, { passive: true });
 }
 
 // ==================== BOTTOM SEARCH (Fixed Version) ====================
@@ -259,12 +226,12 @@ function selectSearchResult(id, type) {
 
     if (type === 'product') {
         navigateTo('marketplace');
-        currentFilteredProducts = [item];   // Show only selected item
+        currentFilteredProducts = [item];
         marketplacePage = 1;
         renderProducts('marketplace-grid', currentFilteredProducts);
     } else {
         navigateTo('services');
-        currentFilteredServices = [item];   // Show only selected item
+        currentFilteredServices = [item];
         servicesPage = 1;
         renderServicesPaginated();
     }
@@ -318,10 +285,8 @@ function toggleSidebar() {
         overlay.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
 
-        // Hide bottom nav when sidebar opens
         if (bottomNav) bottomNav.style.transform = 'translateY(100%)';
 
-        // Close any open modals
         closeAllModals();
     } else {
         // CLOSE SIDEBAR
@@ -329,14 +294,12 @@ function toggleSidebar() {
         overlay.classList.add('hidden');
         document.body.style.overflow = 'visible';
 
-        // Restore bottom nav
         if (bottomNav) bottomNav.style.transform = 'translateY(0)';
     }
 }
 
-// New function: Close sidebar then navigate (for all sidebar menu items)
+// New function: Close sidebar then navigate
 function closeSidebarAndNavigate(page) {
-    // First close the sidebar
     const sidebar = document.getElementById('sidebar-menu');
     const overlay = document.getElementById('sidebar-overlay');
     
@@ -344,18 +307,15 @@ function closeSidebarAndNavigate(page) {
     if (overlay) overlay.classList.add('hidden');
     document.body.style.overflow = 'visible';
 
-    // Restore bottom nav
     const bottomNav = document.getElementById('mobile-bottom-nav');
     if (bottomNav) bottomNav.style.transform = 'translateY(0)';
 
-    // Now perform navigation
     if (page === 'sell') {
         showPostListingModal();
     } else {
         navigateTo(page);
     }
 }
-
 // ==================== MODALS ====================
 function showLoginModal() {
     toggleSidebar(); 
