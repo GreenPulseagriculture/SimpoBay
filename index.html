@@ -195,17 +195,17 @@
             <p id="sidebar-role" class="text-sm text-gray-500"></p>
         </div>
 
-        <!-- Menu Content -->
+               <!-- Menu Content -->
         <div class="mt-6 space-y-2 text-[17px] font-medium">
 
             <!-- Logged Out: Login & Signup at the TOP -->
             <div id="sidebar-logged-out">
-                <button onclick="showLoginModal(); toggleSidebar()" 
+                <button onclick="showLoginModal()" 
                         class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl text-left">
                     <i class="fa-solid fa-right-to-bracket text-blue-700"></i> 
                     <span>Log In</span>
                 </button>
-                <button onclick="showSignupModal(); toggleSidebar()" 
+                <button onclick="showSignupModal()" 
                         class="w-full flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl text-left">
                     <i class="fa-solid fa-user-plus text-blue-700"></i> 
                     <span>Sign Up</span>
@@ -214,16 +214,16 @@
             </div>
 
             <!-- Main Navigation -->
-            <a href="#" onclick="navigateTo('home'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <a href="#" onclick="closeSidebarAndNavigate('home')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                 <i class="fa-solid fa-house w-5 text-blue-600"></i> Home
             </a>
-            <a href="#" onclick="navigateTo('marketplace'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <a href="#" onclick="closeSidebarAndNavigate('marketplace')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                 <i class="fa-solid fa-store w-5 text-blue-600"></i> Marketplace
             </a>
-            <a href="#" onclick="navigateTo('services'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <a href="#" onclick="closeSidebarAndNavigate('services')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                 <i class="fa-solid fa-wrench w-5 text-blue-600"></i> Services
             </a>
-            <a href="#" onclick="navigateTo('sell'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <a href="#" onclick="closeSidebarAndNavigate('sell')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                 <i class="fa-solid fa-tag w-5 text-blue-600"></i> Post Listing
             </a>
             
@@ -231,22 +231,22 @@
             <div class="h-px bg-gray-200 my-6"></div>
 
             <!-- Extra Links -->
-            <a href="#" onclick="navigateTo('about'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <a href="#" onclick="closeSidebarAndNavigate('about')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                 <i class="fa-solid fa-info-circle w-5"></i> About Us
             </a>
-            <a href="#" onclick="navigateTo('help'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <a href="#" onclick="closeSidebarAndNavigate('help')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                 <i class="fa-solid fa-circle-question w-5"></i> Help Center
             </a>
 
             <!-- Logged In Options -->
             <div id="sidebar-logged-in" class="hidden border-t pt-6 mt-6">
-                <a href="#" onclick="showSellerDashboard(); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                <a href="#" onclick="closeSidebarAndNavigate('dashboard')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                     <i class="fa-solid fa-chart-line w-5"></i> Seller Dashboard
                 </a>
-                <a href="#" onclick="showAdminDashboard(); toggleSidebar()" id="sidebar-admin-link" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors hidden">
+                <a href="#" onclick="closeSidebarAndNavigate('admin')" id="sidebar-admin-link" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors hidden">
                     <i class="fa-solid fa-shield-halved w-5"></i> Admin Dashboard
                 </a>
-                <button onclick="logout(); toggleSidebar()" 
+                <button onclick="logout()" 
                         class="w-full text-left flex items-center gap-4 px-5 py-4 hover:bg-red-50 text-red-600 rounded-2xl mt-4">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
@@ -254,7 +254,6 @@
         </div>
     </div>
 </div>
-
 <!-- Overlay -->
 <div id="sidebar-overlay" onclick="toggleSidebar()" class="hidden fixed inset-0 bg-black/50 z-[99]"></div>
 
@@ -699,33 +698,54 @@
         </div>
     </div>
 
-    <!-- LOGIN MODAL -->
-    <div id="login-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-3xl font-bold">Login</h3>
-                <button onclick="hideLoginModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
-            </div>
-            <input id="login-username" type="text" placeholder="email or phone number" class="w-full p-5 border rounded-3xl mb-4">
-            <input id="login-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-8">
-            <button id="login-submit-btn" onclick="performLogin()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Login</button>
+   <!-- LOGIN MODAL -->
+<div id="login-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-3xl font-bold">Login</h3>
+            <button onclick="hideLoginModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
         </div>
-    </div>
-
-    <!-- SIGNUP MODAL -->
-    <div id="signup-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-3xl font-bold">Create Account</h3>
-                <button onclick="hideSignupModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
-            </div>
-            <input id="signup-name" type="text" placeholder="Full Name" class="w-full p-5 border rounded-3xl mb-4">
-            <input id="signup-phone" type="tel" placeholder="email or phone number" class="w-full p-5 border rounded-3xl mb-6">
-            <input id="signup-password" type="password" placeholder="Password" class="w-full p-5 border rounded-3xl mb-6">
-            <button id="signup-submit-btn" onclick="performSignup()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Create Account</button>
+        
+        <input id="login-username" type="text" placeholder=" Email or Phone number" class="w-full p-5 border rounded-3xl mb-4">
+        
+        <div class="relative mb-8">
+            <input id="login-password" 
+                   type="password" 
+                   placeholder="Password" 
+                   class="w-full p-5 border rounded-3xl pr-12">
+            <i onclick="togglePasswordVisibility('login-password', 'login-eye')" 
+               id="login-eye"
+               class="fa-solid fa-eye absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xl"></i>
         </div>
+        
+        <button id="login-submit-btn" onclick="performLogin()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Login</button>
     </div>
+</div>
 
+<!-- SIGNUP MODAL -->
+<div id="signup-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-8 max-w-md w-full">
+        <div class="flex justify-between items-center mb-8">
+            <h3 class="text-3xl font-bold">Create Account</h3>
+            <button onclick="hideSignupModal()" class="text-4xl text-gray-400 hover:text-black">×</button>
+        </div>
+        
+        <input id="signup-name" type="text" placeholder="Full Name" class="w-full p-5 border rounded-3xl mb-4">
+        <input id="signup-phone" type="tel" placeholder=" Email or Phone number" class="w-full p-5 border rounded-3xl mb-6">
+        
+        <div class="relative mb-6">
+            <input id="signup-password" 
+                   type="password" 
+                   placeholder="Password" 
+                   class="w-full p-5 border rounded-3xl pr-12">
+            <i onclick="togglePasswordVisibility('signup-password', 'signup-eye')" 
+               id="signup-eye"
+               class="fa-solid fa-eye absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 cursor-pointer text-xl"></i>
+        </div>
+        
+        <button id="signup-submit-btn" onclick="performSignup()" class="w-full py-6 bg-blue-700 text-white font-bold rounded-3xl">Create Account</button>
+    </div>
+</div>
     <!-- PRODUCT DETAIL MODAL -->
     <div id="product-detail-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
         <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
