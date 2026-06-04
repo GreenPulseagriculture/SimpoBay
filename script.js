@@ -126,11 +126,11 @@ function showBottomSearch() {
     if (!overlay) {
         overlay = document.createElement('div');
         overlay.id = 'bottom-search-overlay';
-        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-14 sm:pt-20 md:pt-24 pb-4`;
+        overlay.className = `fixed inset-0 bg-black/70 z-[150] hidden flex items-start justify-center pt-8 sm:pt-14 md:pt-20 pb-4`;
         
         overlay.innerHTML = `
-            <div class="bg-white w-full max-w-md sm:max-w-lg mx-3 sm:mx-4 rounded-3xl shadow-2xl overflow-hidden 
-                        max-h-[85vh] sm:max-h-[80vh] flex flex-col">
+            <div class="bg-white w-full max-w-[92%] sm:max-w-md md:max-w-lg mx-3 sm:mx-4 rounded-3xl shadow-2xl overflow-hidden 
+                        max-h-[88vh] sm:max-h-[82vh] flex flex-col">
                 
                 <!-- Search Header -->
                 <div class="p-4 border-b flex items-center gap-3 sticky top-0 bg-white z-10 rounded-t-3xl">
@@ -142,7 +142,7 @@ function showBottomSearch() {
                         class="flex-1 outline-none text-base sm:text-lg placeholder-gray-400"
                         onkeyup="if(event.key === 'Enter') performBottomSearch()">
                     <button onclick="hideBottomSearch()" 
-                            class="w-11 h-11 flex items-center justify-center text-3xl leading-none text-gray-500 hover:text-gray-800 hover:bg-gray-100 active:bg-gray-200 rounded-2xl transition-all flex-shrink-0">
+                            class="w-10 h-10 flex items-center justify-center text-3xl leading-none text-gray-500 hover:text-gray-800 hover:bg-gray-100 active:bg-gray-200 rounded-2xl transition-all flex-shrink-0">
                         ✕
                     </button>
                 </div>
@@ -163,7 +163,7 @@ function showBottomSearch() {
     setTimeout(() => {
         const input = document.getElementById('bottom-search-input');
         if (input) input.focus();
-    }, 250);
+    }, 200);
 }
 
 function hideBottomSearch() {
