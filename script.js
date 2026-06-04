@@ -142,7 +142,9 @@ function showBottomSearch() {
                         class="flex-1 outline-none text-base sm:text-lg placeholder-gray-400"
                         onkeyup="if(event.key === 'Enter') performBottomSearch()">
                     <button onclick="hideBottomSearch()" 
-                            class="text-gray-500 hover:text-gray-700 px-2 py-1 text-2xl leading-none">✕</button>
+                            class="w-11 h-11 flex items-center justify-center text-3xl leading-none text-gray-500 hover:text-gray-800 hover:bg-gray-100 active:bg-gray-200 rounded-2xl transition-all flex-shrink-0">
+                        ✕
+                    </button>
                 </div>
                 
                 <!-- Results Area -->
