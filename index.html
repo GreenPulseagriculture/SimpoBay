@@ -240,13 +240,13 @@
 
             <!-- Logged In Options -->
             <div id="sidebar-logged-in" class="hidden border-t pt-6 mt-6">
-                <a href="#" onclick="closeSidebarAndNavigate('dashboard')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                <a href="#" onclick="showSellerDashboard(); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
                     <i class="fa-solid fa-chart-line w-5"></i> Seller Dashboard
                 </a>
-                <a href="#" onclick="closeSidebarAndNavigate('admin')" id="sidebar-admin-link" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors hidden">
+                <a href="#" onclick="showAdminDashboard(); toggleSidebar()" id="sidebar-admin-link" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors hidden">
                     <i class="fa-solid fa-shield-halved w-5"></i> Admin Dashboard
                 </a>
-                <button onclick="logout()" 
+                <button onclick="logout(); toggleSidebar()" 
                         class="w-full text-left flex items-center gap-4 px-5 py-4 hover:bg-red-50 text-red-600 rounded-2xl mt-4">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
