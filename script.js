@@ -154,6 +154,14 @@ function showBottomSearch() {
             </div>
         `;
         document.body.appendChild(overlay);
+
+        // Click outside (on overlay background) to close
+        overlay.addEventListener('click', function(e) {
+            // If user clicked directly on the overlay (not inside the white box)
+            if (e.target === overlay) {
+                hideBottomSearch();
+            }
+        });
     }
 
     overlay.classList.remove('hidden');
