@@ -230,13 +230,16 @@
 
             <div class="h-px bg-gray-200 my-6"></div>
 
-            <!-- Extra Links -->
-            <a href="#" onclick="closeSidebarAndNavigate('about')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
-                <i class="fa-solid fa-info-circle w-5"></i> About Us
-            </a>
-            <a href="#" onclick="closeSidebarAndNavigate('help')" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
-                <i class="fa-solid fa-circle-question w-5"></i> Help Center
-            </a>
+             <!-- Extra Links -->
+         <a href="#" onclick="navigateTo('about'); toggleSidebar()" class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+            <i class="fa-solid fa-info-circle w-5"></i> About Us
+             </a>
+               <a href="https://wa.me/265883944589" 
+                onclick="toggleSidebar()" 
+                 target=" i need help"
+                 class="flex items-center gap-4 px-5 py-4 hover:bg-gray-100 rounded-2xl transition-colors">
+                 <i class="fa-solid fa-circle-question w-5"></i> Help Center
+             </a>
 
             <!-- Logged In Options -->
             <div id="sidebar-logged-in" class="hidden border-t pt-6 mt-6">
